@@ -1,1 +1,502 @@
-[]
+[
+  {
+    "doc_id": "faq_appointment_booking",
+    "filename": "Clinic FAQ Markdown/faq_appointment_booking.txt",
+    "source_type": "faq_markdown",
+    "persona_visibility": "patient",
+    "title": "How do I book an appointment?",
+    "provenance": "Synthetic — authored for CareDesk. Fictional entities only.",
+    "added_date": "2026-08-18",
+    "notes": ""
+  },
+  {
+    "doc_id": "faq_appointment_cancellation",
+    "filename": "Clinic FAQ Markdown/faq_appointment_cancellation.txt",
+    "source_type": "faq_markdown",
+    "persona_visibility": "patient",
+    "title": "What is the cancellation policy?",
+    "provenance": "Synthetic — authored for CareDesk. Fictional entities only.",
+    "added_date": "2026-08-18",
+    "notes": ""
+  },
+  {
+    "doc_id": "faq_billing_payment_plans",
+    "filename": "Clinic FAQ Markdown/faq_billing_payment_plans.txt",
+    "source_type": "faq_markdown",
+    "persona_visibility": "patient",
+    "title": "Do you offer payment plans for medical bills?",
+    "provenance": "Synthetic — authored for CareDesk. Fictional entities only.",
+    "added_date": "2026-08-18",
+    "notes": ""
+  },
+  {
+    "doc_id": "faq_clinic_hours",
+    "filename": "Clinic FAQ Markdown/faq_clinic_hours.txt",
+    "source_type": "faq_markdown",
+    "persona_visibility": "patient",
+    "title": "What are the clinic's operating hours?",
+    "provenance": "Synthetic — authored for CareDesk. Fictional entities only.",
+    "added_date": "2026-08-18",
+    "notes": ""
+  },
+  {
+    "doc_id": "faq_insurance_accepted",
+    "filename": "Clinic FAQ Markdown/faq_insurance_accepted.txt",
+    "source_type": "faq_markdown",
+    "persona_visibility": "patient",
+    "title": "What insurance plans do you accept?",
+    "provenance": "Synthetic — authored for CareDesk. Fictional entities only.",
+    "added_date": "2026-08-18",
+    "notes": ""
+  },
+  {
+    "doc_id": "faq_lab_results_access",
+    "filename": "Clinic FAQ Markdown/faq_lab_results_access.txt",
+    "source_type": "faq_markdown",
+    "persona_visibility": "patient",
+    "title": "When will I be able to see my lab results?",
+    "provenance": "Synthetic — authored for CareDesk. Fictional entities only.",
+    "added_date": "2026-08-18",
+    "notes": ""
+  },
+  {
+    "doc_id": "faq_language_interpretation",
+    "filename": "Clinic FAQ Markdown/faq_language_interpretation.txt",
+    "source_type": "faq_markdown",
+    "persona_visibility": "patient",
+    "title": "Do you offer interpretation services?",
+    "provenance": "Synthetic — authored for CareDesk. Fictional entities only.",
+    "added_date": "2026-08-18",
+    "notes": ""
+  },
+  {
+    "doc_id": "faq_missed_appointment_fee_waiver",
+    "filename": "Clinic FAQ Markdown/faq_missed_appointment_fee_waiver.txt",
+    "source_type": "faq_markdown",
+    "persona_visibility": "patient",
+    "title": "Can the no-show fee be waived?",
+    "provenance": "Synthetic — authored for CareDesk. Fictional entities only.",
+    "added_date": "2026-08-18",
+    "notes": "Mentions that waivers are granted 'at the discretion of clinic management' but discloses no internal tiers or thresholds (see staff_runbook_no_show_fee_exceptions for those); kept patient-visible, flagged for human review."
+  },
+  {
+    "doc_id": "faq_new_patient_registration",
+    "filename": "Clinic FAQ Markdown/faq_new_patient_registration.txt",
+    "source_type": "faq_markdown",
+    "persona_visibility": "patient",
+    "title": "How do I register as a new patient?",
+    "provenance": "Synthetic — authored for CareDesk. Fictional entities only.",
+    "added_date": "2026-08-18",
+    "notes": ""
+  },
+  {
+    "doc_id": "faq_parking_directions",
+    "filename": "Clinic FAQ Markdown/faq_parking_directions.txt",
+    "source_type": "faq_markdown",
+    "persona_visibility": "patient",
+    "title": "Is parking available at the clinic?",
+    "provenance": "Synthetic — authored for CareDesk. Fictional entities only.",
+    "added_date": "2026-08-18",
+    "notes": ""
+  },
+  {
+    "doc_id": "faq_portal_login_issues",
+    "filename": "Clinic FAQ Markdown/faq_portal_login_issues.txt",
+    "source_type": "faq_markdown",
+    "persona_visibility": "patient",
+    "title": "I can't log into the patient portal. What should I do?",
+    "provenance": "Synthetic — authored for CareDesk. Fictional entities only.",
+    "added_date": "2026-08-18",
+    "notes": "States the account lockout threshold (5 attempts / 30 min). Treated as standard consumer-facing UX disclosure rather than a sensitive internal system limitation; kept patient-visible, flagged for human review."
+  },
+  {
+    "doc_id": "faq_prescription_refills",
+    "filename": "Clinic FAQ Markdown/faq_prescription_refills.txt",
+    "source_type": "faq_markdown",
+    "persona_visibility": "patient",
+    "title": "How do I request a prescription refill?",
+    "provenance": "Synthetic — authored for CareDesk. Fictional entities only.",
+    "added_date": "2026-08-18",
+    "notes": ""
+  },
+  {
+    "doc_id": "faq_records_request",
+    "filename": "Clinic FAQ Markdown/faq_records_request.txt",
+    "source_type": "faq_markdown",
+    "persona_visibility": "patient",
+    "title": "How do I get a copy of my medical records?",
+    "provenance": "Synthetic — authored for CareDesk. Fictional entities only.",
+    "added_date": "2026-08-18",
+    "notes": ""
+  },
+  {
+    "doc_id": "faq_second_opinion",
+    "filename": "Clinic FAQ Markdown/faq_second_opinion.txt",
+    "source_type": "faq_markdown",
+    "persona_visibility": "patient",
+    "title": "Can I request a second opinion?",
+    "provenance": "Synthetic — authored for CareDesk. Fictional entities only.",
+    "added_date": "2026-08-18",
+    "notes": ""
+  },
+  {
+    "doc_id": "faq_telehealth_visits",
+    "filename": "Clinic FAQ Markdown/faq_telehealth_visits.txt",
+    "source_type": "faq_markdown",
+    "persona_visibility": "patient",
+    "title": "Do you offer telehealth appointments?",
+    "provenance": "Synthetic — authored for CareDesk. Fictional entities only.",
+    "added_date": "2026-08-18",
+    "notes": ""
+  },
+  {
+    "doc_id": "leaflet_albuterol",
+    "filename": "Medication Leaflets/medleaflet_albuterol.txt",
+    "source_type": "medication_leaflet",
+    "persona_visibility": "both",
+    "title": "Albuterol (ProAir, Ventolin) Medication Leaflet",
+    "provenance": "Synthetic — authored for CareDesk. Fictional entities only.",
+    "added_date": "2026-08-18",
+    "notes": "Safety-critical; dosage, storage, and serious-side-effect language must be cited verbatim, not paraphrased."
+  },
+  {
+    "doc_id": "leaflet_amoxicillin",
+    "filename": "Medication Leaflets/medleaflet_amoxicillin.txt",
+    "source_type": "medication_leaflet",
+    "persona_visibility": "both",
+    "title": "Amoxicillin Medication Leaflet",
+    "provenance": "Synthetic — authored for CareDesk. Fictional entities only.",
+    "added_date": "2026-08-18",
+    "notes": "Safety-critical; dosage, storage, and serious-side-effect language must be cited verbatim, not paraphrased."
+  },
+  {
+    "doc_id": "leaflet_atorvastatin",
+    "filename": "Medication Leaflets/medleaflet_atorvastatin.txt",
+    "source_type": "medication_leaflet",
+    "persona_visibility": "both",
+    "title": "Atorvastatin (Lipitor) Medication Leaflet",
+    "provenance": "Synthetic — authored for CareDesk. Fictional entities only.",
+    "added_date": "2026-08-18",
+    "notes": "Safety-critical; dosage, storage, and serious-side-effect language must be cited verbatim, not paraphrased."
+  },
+  {
+    "doc_id": "leaflet_empagliflozin",
+    "filename": "Medication Leaflets/medleaflet_empagliflozin.txt",
+    "source_type": "medication_leaflet",
+    "persona_visibility": "both",
+    "title": "Empagliflozin (Jardiance) Medication Leaflet",
+    "provenance": "Synthetic — authored for CareDesk. Fictional entities only.",
+    "added_date": "2026-08-18",
+    "notes": "Safety-critical; dosage, storage, and serious-side-effect language must be cited verbatim, not paraphrased."
+  },
+  {
+    "doc_id": "leaflet_ibuprofen",
+    "filename": "Medication Leaflets/medleaflet_ibuprofen.txt",
+    "source_type": "medication_leaflet",
+    "persona_visibility": "both",
+    "title": "Ibuprofen Medication Leaflet",
+    "provenance": "Synthetic — authored for CareDesk. Fictional entities only.",
+    "added_date": "2026-08-18",
+    "notes": "Safety-critical; dosage, storage, and serious-side-effect language must be cited verbatim, not paraphrased."
+  },
+  {
+    "doc_id": "leaflet_levothyroxine",
+    "filename": "Medication Leaflets/medleaflet_levothyroxine.txt",
+    "source_type": "medication_leaflet",
+    "persona_visibility": "both",
+    "title": "Levothyroxine (Synthroid) Medication Leaflet",
+    "provenance": "Synthetic — authored for CareDesk. Fictional entities only.",
+    "added_date": "2026-08-18",
+    "notes": "Safety-critical; dosage, storage, and serious-side-effect language must be cited verbatim, not paraphrased."
+  },
+  {
+    "doc_id": "leaflet_lisinopril",
+    "filename": "Medication Leaflets/medleaflet_lisinopril.txt",
+    "source_type": "medication_leaflet",
+    "persona_visibility": "both",
+    "title": "Lisinopril Medication Leaflet",
+    "provenance": "Synthetic — authored for CareDesk. Fictional entities only.",
+    "added_date": "2026-08-18",
+    "notes": "Safety-critical; dosage, storage, and serious-side-effect language must be cited verbatim, not paraphrased."
+  },
+  {
+    "doc_id": "leaflet_metformin",
+    "filename": "Medication Leaflets/medleaflet_metformin.txt",
+    "source_type": "medication_leaflet",
+    "persona_visibility": "both",
+    "title": "Metformin (Glucophage) Medication Leaflet",
+    "provenance": "Synthetic — authored for CareDesk. Fictional entities only.",
+    "added_date": "2026-08-18",
+    "notes": "Safety-critical; dosage, storage, and serious-side-effect language must be cited verbatim, not paraphrased."
+  },
+  {
+    "doc_id": "leaflet_omeprazole",
+    "filename": "Medication Leaflets/medleaflet_omeprazole.txt",
+    "source_type": "medication_leaflet",
+    "persona_visibility": "both",
+    "title": "Omeprazole (Prilosec) Medication Leaflet",
+    "provenance": "Synthetic — authored for CareDesk. Fictional entities only.",
+    "added_date": "2026-08-18",
+    "notes": "Safety-critical; dosage, storage, and serious-side-effect language must be cited verbatim, not paraphrased."
+  },
+  {
+    "doc_id": "leaflet_sertraline",
+    "filename": "Medication Leaflets/medleaflet_sertraline.txt",
+    "source_type": "medication_leaflet",
+    "persona_visibility": "both",
+    "title": "Sertraline (Zoloft) Medication Leaflet",
+    "provenance": "Synthetic — authored for CareDesk. Fictional entities only.",
+    "added_date": "2026-08-18",
+    "notes": "Safety-critical; dosage, storage, and serious-side-effect language must be cited verbatim, not paraphrased."
+  },
+  {
+    "doc_id": "policy_durable_medical_equipment",
+    "filename": "Payer Policy Pdfs/payer_policy_durable_medical_equipment.txt",
+    "source_type": "policy_pdf",
+    "persona_visibility": "both",
+    "title": "Durable Medical Equipment (DME) Coverage Policy",
+    "provenance": "Synthetic — authored for CareDesk. Fictional entities only.",
+    "added_date": "2026-08-18",
+    "notes": "5 flat numbered sections, no subsections or tables; no cross-references to other policy documents."
+  },
+  {
+    "doc_id": "policy_imaging",
+    "filename": "Payer Policy Pdfs/payer_policy_imaging.txt",
+    "source_type": "policy_pdf",
+    "persona_visibility": "both",
+    "title": "Diagnostic Imaging Coverage Policy",
+    "provenance": "Synthetic — authored for CareDesk. Fictional entities only.",
+    "added_date": "2026-08-18",
+    "notes": "5 sections, Section 2 has nested subsections 2.1-2.3 with per-modality criteria; Section 5 cross-references the staff-only Prior Authorization Appeals Runbook by name only (no content leak). Also cross-referenced by payer_policy_surgery_preauth Section 5."
+  },
+  {
+    "doc_id": "policy_maternity",
+    "filename": "Payer Policy Pdfs/payer_policy_maternity.txt",
+    "source_type": "policy_pdf",
+    "persona_visibility": "both",
+    "title": "Maternity and Newborn Care Coverage Policy",
+    "provenance": "Synthetic — authored for CareDesk. Fictional entities only.",
+    "added_date": "2026-08-18",
+    "notes": "5 flat numbered sections, no subsections or tables; no cross-references to other policy documents."
+  },
+  {
+    "doc_id": "policy_mental_health",
+    "filename": "Payer Policy Pdfs/payer_policy_mental_health.txt",
+    "source_type": "policy_pdf",
+    "persona_visibility": "both",
+    "title": "Behavioral and Mental Health Services Coverage Policy",
+    "provenance": "Synthetic — authored for CareDesk. Fictional entities only.",
+    "added_date": "2026-08-18",
+    "notes": "5 flat numbered sections; Section 3 cross-references Section 2 of the Specialist Referral Policy."
+  },
+  {
+    "doc_id": "policy_prescription_drugs",
+    "filename": "Payer Policy Pdfs/payer_policy_prescription_drugs.txt",
+    "source_type": "policy_pdf",
+    "persona_visibility": "both",
+    "title": "Prescription Drug Coverage Policy",
+    "provenance": "Synthetic — authored for CareDesk. Fictional entities only.",
+    "added_date": "2026-08-18",
+    "notes": "5 sections; Section 1 is a table-like formulary tier list (Tier 1-4 with copays). No cross-references to other policy documents."
+  },
+  {
+    "doc_id": "policy_preventive_care",
+    "filename": "Payer Policy Pdfs/payer_policy_preventive_care.txt",
+    "source_type": "policy_pdf",
+    "persona_visibility": "both",
+    "title": "Preventive Care Services Coverage Policy",
+    "provenance": "Synthetic — authored for CareDesk. Fictional entities only.",
+    "added_date": "2026-08-18",
+    "notes": "4 flat numbered sections, Section 1 is a bulleted list of covered services; no cross-references to other policy documents."
+  },
+  {
+    "doc_id": "policy_specialist_referral",
+    "filename": "Payer Policy Pdfs/payer_policy_specialist_referral.txt",
+    "source_type": "policy_pdf",
+    "persona_visibility": "both",
+    "title": "Specialist Referral and Coverage Policy",
+    "provenance": "Synthetic — authored for CareDesk. Fictional entities only.",
+    "added_date": "2026-08-18",
+    "notes": "5 flat numbered sections; referenced by payer_policy_mental_health Section 3."
+  },
+  {
+    "doc_id": "policy_surgery_preauth",
+    "filename": "Payer Policy Pdfs/payer_policy_surgery_preauth.txt",
+    "source_type": "policy_pdf",
+    "persona_visibility": "both",
+    "title": "Surgical Procedure Pre-Authorization Policy",
+    "provenance": "Synthetic — authored for CareDesk. Fictional entities only.",
+    "added_date": "2026-08-18",
+    "notes": "5 flat numbered sections; Section 5 cross-references Section 5 of the Diagnostic Imaging Coverage Policy for the appeals process."
+  },
+  {
+    "doc_id": "ticket_0001",
+    "filename": "Resolved Ticket Log/ticket_0001.txt",
+    "source_type": "resolved_ticket",
+    "persona_visibility": "staff",
+    "title": "Appointment location mismatch between portal and booking",
+    "provenance": "Synthetic — authored for CareDesk. Fictional entities only.",
+    "added_date": "2026-08-18",
+    "notes": "OVERRIDDEN to staff: resolution discloses an internal system gap (location-change notifications not firing for single-week temporary changes) that was flagged to IT — an internal system limitation not appropriate for patient view. Chunk as a single unit; do not split QUERY from RESOLUTION."
+  },
+  {
+    "doc_id": "ticket_0002",
+    "filename": "Resolved Ticket Log/ticket_0002.txt",
+    "source_type": "resolved_ticket",
+    "persona_visibility": "both",
+    "title": "Colonoscopy coverage question for a patient under the standard screening age",
+    "provenance": "Synthetic — authored for CareDesk. Fictional entities only.",
+    "added_date": "2026-08-18",
+    "notes": "Chunk as a single unit; do not split QUERY from RESOLUTION."
+  },
+  {
+    "doc_id": "ticket_0003",
+    "filename": "Resolved Ticket Log/ticket_0003.txt",
+    "source_type": "resolved_ticket",
+    "persona_visibility": "both",
+    "title": "Portal password reset email not arriving due to an email typo on file",
+    "provenance": "Synthetic — authored for CareDesk. Fictional entities only.",
+    "added_date": "2026-08-18",
+    "notes": "Chunk as a single unit; do not split QUERY from RESOLUTION."
+  },
+  {
+    "doc_id": "ticket_0004",
+    "filename": "Resolved Ticket Log/ticket_0004.txt",
+    "source_type": "resolved_ticket",
+    "persona_visibility": "staff",
+    "title": "Payment plan exception request below the $200 minimum",
+    "provenance": "Synthetic — authored for CareDesk. Fictional entities only.",
+    "added_date": "2026-08-18",
+    "notes": "OVERRIDDEN to staff: resolution discloses internal waiver/discretion authority and an escalation tier (sub-$200 exceptions require billing supervisor sign-off) not appropriate for patient view. Chunk as a single unit; do not split QUERY from RESOLUTION."
+  },
+  {
+    "doc_id": "ticket_0005",
+    "filename": "Resolved Ticket Log/ticket_0005.txt",
+    "source_type": "resolved_ticket",
+    "persona_visibility": "both",
+    "title": "MRI prior authorization denial reason clarification",
+    "provenance": "Synthetic — authored for CareDesk. Fictional entities only.",
+    "added_date": "2026-08-18",
+    "notes": "Chunk as a single unit; do not split QUERY from RESOLUTION."
+  },
+  {
+    "doc_id": "ticket_0006",
+    "filename": "Resolved Ticket Log/ticket_0006.txt",
+    "source_type": "resolved_ticket",
+    "persona_visibility": "both",
+    "title": "Walk-in sick visit availability question",
+    "provenance": "Synthetic — authored for CareDesk. Fictional entities only.",
+    "added_date": "2026-08-18",
+    "notes": "Chunk as a single unit; do not split QUERY from RESOLUTION."
+  },
+  {
+    "doc_id": "ticket_0007",
+    "filename": "Resolved Ticket Log/ticket_0007.txt",
+    "source_type": "resolved_ticket",
+    "persona_visibility": "both",
+    "title": "Out-of-network records transfer cost and turnaround",
+    "provenance": "Synthetic — authored for CareDesk. Fictional entities only.",
+    "added_date": "2026-08-18",
+    "notes": "Chunk as a single unit; do not split QUERY from RESOLUTION."
+  },
+  {
+    "doc_id": "ticket_0008",
+    "filename": "Resolved Ticket Log/ticket_0008.txt",
+    "source_type": "resolved_ticket",
+    "persona_visibility": "both",
+    "title": "No-show fee waiver for hospitalization",
+    "provenance": "Synthetic — authored for CareDesk. Fictional entities only.",
+    "added_date": "2026-08-18",
+    "notes": "Chunk as a single unit; do not split QUERY from RESOLUTION."
+  },
+  {
+    "doc_id": "ticket_0009",
+    "filename": "Resolved Ticket Log/ticket_0009.txt",
+    "source_type": "resolved_ticket",
+    "persona_visibility": "both",
+    "title": "Unexpected prescription cost increase due to a formulary tier change",
+    "provenance": "Synthetic — authored for CareDesk. Fictional entities only.",
+    "added_date": "2026-08-18",
+    "notes": "Chunk as a single unit; do not split QUERY from RESOLUTION."
+  },
+  {
+    "doc_id": "ticket_0010",
+    "filename": "Resolved Ticket Log/ticket_0010.txt",
+    "source_type": "resolved_ticket",
+    "persona_visibility": "both",
+    "title": "Telehealth eligibility for an annual physical",
+    "provenance": "Synthetic — authored for CareDesk. Fictional entities only.",
+    "added_date": "2026-08-18",
+    "notes": "Chunk as a single unit; do not split QUERY from RESOLUTION."
+  },
+  {
+    "doc_id": "rb_clinical_escalation",
+    "filename": "Procedure Runboooks/staff_runbook_clinical_escalation.txt",
+    "source_type": "staff_runbook",
+    "persona_visibility": "staff",
+    "title": "Clinical Escalation to Nurse Queue",
+    "provenance": "Synthetic — authored for CareDesk. Fictional entities only.",
+    "added_date": "2026-08-18",
+    "notes": "Persona-leakage test target: contains mandatory clinical escalation triggers and internal nurse-queue SLA (15/30 min). Must never surface to a patient-persona query."
+  },
+  {
+    "doc_id": "rb_formulary_exception_requests",
+    "filename": "Procedure Runboooks/staff_runbook_formulary_exception_requests.txt",
+    "source_type": "staff_runbook",
+    "persona_visibility": "staff",
+    "title": "Formulary Exception Request Process",
+    "provenance": "Synthetic — authored for CareDesk. Fictional entities only.",
+    "added_date": "2026-08-18",
+    "notes": "Persona-leakage test target: internal routing (Pharmacy Benefits Liaison) and turnaround SLAs. Cross-references ticket_0009 and staff_runbook_prior_auth_appeals. Must never surface to a patient-persona query."
+  },
+  {
+    "doc_id": "rb_front_desk_vs_nurse_routing",
+    "filename": "Procedure Runboooks/staff_runbook_front_desk_vs_nurse_routing.txt",
+    "source_type": "staff_runbook",
+    "persona_visibility": "staff",
+    "title": "Front Desk vs. Nurse Queue Routing Logic",
+    "provenance": "Synthetic — authored for CareDesk. Fictional entities only.",
+    "added_date": "2026-08-18",
+    "notes": "Persona-leakage test target: internal queue routing rules and misrouting SLA (10 min). Must never surface to a patient-persona query."
+  },
+  {
+    "doc_id": "rb_no_show_fee_exceptions",
+    "filename": "Procedure Runboooks/staff_runbook_no_show_fee_exceptions.txt",
+    "source_type": "staff_runbook",
+    "persona_visibility": "staff",
+    "title": "No-Show Fee Waiver Authorization Levels",
+    "provenance": "Synthetic — authored for CareDesk. Fictional entities only.",
+    "added_date": "2026-08-18",
+    "notes": "Persona-leakage test target: defines the 3-tier waiver approval authority (front desk / billing supervisor / clinic manager) referenced by faq_missed_appointment_fee_waiver and ticket_0004. Must never surface to a patient-persona query."
+  },
+  {
+    "doc_id": "rb_persona_access_control",
+    "filename": "Procedure Runboooks/staff_runbook_persona_access_control.txt",
+    "source_type": "staff_runbook",
+    "persona_visibility": "staff",
+    "title": "Persona-Based Content Access Rules",
+    "provenance": "Synthetic — authored for CareDesk. Fictional entities only.",
+    "added_date": "2026-08-18",
+    "notes": "Defines the persona-visibility enforcement rule itself (refuse rather than partially answer staff-only content); the primary persona-leakage test target in this corpus. Must never surface to a patient-persona query."
+  },
+  {
+    "doc_id": "rb_prior_auth_appeals",
+    "filename": "Procedure Runboooks/staff_runbook_prior_auth_appeals.txt",
+    "source_type": "staff_runbook",
+    "persona_visibility": "staff",
+    "title": "Prior Authorization Denial Appeal Process",
+    "provenance": "Synthetic — authored for CareDesk. Fictional entities only.",
+    "added_date": "2026-08-18",
+    "notes": "Persona-leakage test target: internal appeal tracks, escalation to Payer Relations Manager, and internal SLA (3 business days). Must never surface to a patient-persona query."
+  },
+  {
+    "doc_id": "rb_records_release_verification",
+    "filename": "Procedure Runboooks/staff_runbook_records_release_verification.txt",
+    "source_type": "staff_runbook",
+    "persona_visibility": "staff",
+    "title": "Records Release Identity Verification",
+    "provenance": "Synthetic — authored for CareDesk. Fictional entities only.",
+    "added_date": "2026-08-18",
+    "notes": "Persona-leakage test target: internal identity-verification procedure for records release, including escalation to the Privacy Officer for red-flag requests. Must never surface to a patient-persona query."
+  }
+]
