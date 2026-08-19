@@ -1,0 +1,4 @@
+MEDICATION: Fixture-ol
+CLASS: Test fixture, not a real medication.
+
+DOSAGE: This is fixture content used only by the loader test suite.

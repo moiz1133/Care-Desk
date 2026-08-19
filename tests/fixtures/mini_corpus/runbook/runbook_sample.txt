@@ -1,0 +1,4 @@
+PROCEDURE: Sample Staff Runbook
+
+STEP 1: This is a fixture runbook document used only by the loader test
+suite. It is not part of the real CareDesk corpus.

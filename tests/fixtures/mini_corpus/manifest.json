@@ -1,0 +1,52 @@
+[
+  {
+    "doc_id": "faq_sample",
+    "filename": "faq/faq_sample.txt",
+    "source_type": "faq_markdown",
+    "persona_visibility": "patient",
+    "title": "Sample FAQ",
+    "provenance": "Synthetic — authored for test fixtures. Fictional entities only.",
+    "added_date": "2026-08-18",
+    "notes": ""
+  },
+  {
+    "doc_id": "policy_sample",
+    "filename": "policy/policy_sample.txt",
+    "source_type": "policy_pdf",
+    "persona_visibility": "both",
+    "title": "Sample Coverage Policy",
+    "provenance": "Synthetic — authored for test fixtures. Fictional entities only.",
+    "added_date": "2026-08-18",
+    "notes": "Fixture policy document."
+  },
+  {
+    "doc_id": "leaflet_sample",
+    "filename": "leaflet/leaflet_sample.txt",
+    "source_type": "medication_leaflet",
+    "persona_visibility": "both",
+    "title": "Sample Medication Leaflet",
+    "provenance": "Synthetic — authored for test fixtures. Fictional entities only.",
+    "added_date": "2026-08-18",
+    "notes": "Fixture leaflet document."
+  },
+  {
+    "doc_id": "ticket_sample",
+    "filename": "ticket/ticket_sample.txt",
+    "source_type": "resolved_ticket",
+    "persona_visibility": "staff",
+    "title": "Sample Resolved Ticket",
+    "provenance": "Synthetic — authored for test fixtures. Fictional entities only.",
+    "added_date": "2026-08-18",
+    "notes": ""
+  },
+  {
+    "doc_id": "runbook_sample",
+    "filename": "runbook/runbook_sample.txt",
+    "source_type": "staff_runbook",
+    "persona_visibility": "staff",
+    "title": "Sample Staff Runbook",
+    "provenance": "Synthetic — authored for test fixtures. Fictional entities only.",
+    "added_date": "2026-08-18",
+    "notes": "Fixture runbook document."
+  }
+]

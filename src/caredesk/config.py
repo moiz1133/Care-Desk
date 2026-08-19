@@ -8,6 +8,7 @@ instead, so configuration stays centralized and testable.
 """
 
 from functools import lru_cache
+from pathlib import Path
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -35,6 +36,12 @@ class Settings(BaseSettings):
     redis_url: str = Field(
         default="redis://localhost:6379/0",
         description="Redis connection string, used for the semantic cache.",
+    )
+
+    # Corpus
+    corpus_root: Path = Field(
+        default=Path("data/corpus"),
+        description="Root directory containing the document corpus and its manifest.json.",
     )
 
     # OpenAI

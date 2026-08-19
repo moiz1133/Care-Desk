@@ -1,0 +1,2 @@
+QUERY: "This is a fixture ticket used only by the loader test suite."
+RESOLUTION: No real resolution — fixture content only.
