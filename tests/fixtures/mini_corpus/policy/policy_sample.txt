@@ -1,0 +1,7 @@
+title: Sample Coverage Policy
+
+SECTION 1: SCOPE
+This is a fixture policy document used only by the loader test suite.
+
+SECTION 2: COST SHARING
+Standard tier: 20% coinsurance after deductible.

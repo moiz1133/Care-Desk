@@ -1,0 +1,4 @@
+## Sample FAQ
+
+This is a fixture document used only by the loader test suite. It is not
+part of the real CareDesk corpus.
