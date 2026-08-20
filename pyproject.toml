@@ -18,6 +18,7 @@ dependencies = [
     "openai>=1.40",
     "langfuse>=2.40",
     "streamlit>=1.37",
+    "tiktoken>=0.14.0",
 ]
 
 [dependency-groups]
@@ -54,7 +55,13 @@ known-first-party = ["caredesk"]
 quote-style = "double"
 
 [tool.mypy]
-python_version = "3.11"
+# Matches the pinned dev interpreter (3.13), not the project's py311 floor:
+# numpy (pulled in transitively via streamlit, not imported by caredesk
+# itself) ships stubs using 3.12+ syntax, and per-module overrides can't
+# suppress a hard parse error in a stub file. caredesk's own code still
+# targets 3.11+ per requires-python in [project]; this setting only
+# controls how mypy parses third-party stubs it discovers.
+python_version = "3.13"
 mypy_path = "src"
 packages = ["caredesk"]
 strict = true

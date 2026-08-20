@@ -75,6 +75,20 @@ class Settings(BaseSettings):
         description="Model used for grounded answer generation.",
     )
 
+    # Chunking
+    chunk_size: int = Field(
+        default=512,
+        description="Target chunk size in tokens for the fixed-size chunker.",
+    )
+    chunk_overlap: int = Field(
+        default=50,
+        description="Token overlap between consecutive chunks in the sliding window.",
+    )
+    chunk_min_tokens: int = Field(
+        default=20,
+        description="Minimum token count for a trailing chunk; shorter ones are dropped.",
+    )
+
     # Retrieval
     retrieval_top_k: int = Field(
         default=20,
