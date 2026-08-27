@@ -1,4 +1,4 @@
-.PHONY: install dev ui test lint typecheck db-up db-down
+.PHONY: install dev ui test lint typecheck db-up db-down db-migrate index
 
 install:
 	uv sync
@@ -24,3 +24,9 @@ db-up:
 
 db-down:
 	docker compose down
+
+db-migrate:
+	uv run alembic upgrade head
+
+index:
+	uv run python scripts/index_corpus.py --dry-run
