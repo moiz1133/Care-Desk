@@ -49,6 +49,15 @@ def _get_encoding(embedding_model: str) -> tiktoken.Encoding:
     return tiktoken.encoding_for_model(embedding_model)
 
 
+def current_strategy(settings: Settings) -> str:
+    """The strategy label chunks produced under `settings` right now would carry.
+
+    Exposed so callers (the indexer) can detect a strategy change without
+    duplicating this format string.
+    """
+    return f"fixed_{settings.chunk_size}_{settings.chunk_overlap}"
+
+
 def chunk_document(doc: LoadedDocument, settings: Settings) -> list[Chunk]:
     """Split one document into fixed-size, overlapping token windows.
 
@@ -79,7 +88,7 @@ def chunk_document(doc: LoadedDocument, settings: Settings) -> list[Chunk]:
         logger.warning("Document %s produced zero tokens; zero chunks.", doc_id)
         return []
 
-    strategy = f"fixed_{settings.chunk_size}_{settings.chunk_overlap}"
+    strategy = current_strategy(settings)
     step = settings.chunk_size - settings.chunk_overlap
 
     chunks: list[Chunk] = []

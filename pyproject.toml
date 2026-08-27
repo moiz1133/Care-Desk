@@ -19,6 +19,7 @@ dependencies = [
     "langfuse>=2.40",
     "streamlit>=1.37",
     "tiktoken>=0.14.0",
+    "alembic>=1.19.1",
 ]
 
 [dependency-groups]

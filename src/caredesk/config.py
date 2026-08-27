@@ -89,6 +89,50 @@ class Settings(BaseSettings):
         description="Minimum token count for a trailing chunk; shorter ones are dropped.",
     )
 
+    # Embedding
+    embedding_dimension: int = Field(
+        default=1536,
+        description="Expected embedding vector dimension; must match embedding_model.",
+    )
+    embedding_batch_size: int = Field(
+        default=100,
+        description="Chunks per embedding API call.",
+    )
+    embedding_max_concurrency: int = Field(
+        default=4,
+        description="Maximum concurrent in-flight embedding batch calls.",
+    )
+    embedding_max_retries: int = Field(
+        default=5,
+        description="Max retry attempts for a rate-limited or transient embedding call.",
+    )
+    embedding_retry_base_delay_seconds: float = Field(
+        default=1.0,
+        description="Base delay for exponential backoff between embedding call retries.",
+    )
+    embedding_cost_ceiling_usd: float = Field(
+        default=5.0,
+        description="Refuse to run indexing outright if the estimated cost exceeds this.",
+    )
+    embedding_price_per_million_tokens_usd: float = Field(
+        default=0.02,
+        description="Embedding model price per 1M tokens, used only for cost estimates.",
+    )
+
+    # Indexing
+    hnsw_m: int = Field(
+        default=16,
+        description="pgvector HNSW index 'm' parameter (max connections per layer).",
+    )
+    hnsw_ef_construction: int = Field(
+        default=64,
+        description="pgvector HNSW index 'ef_construction' parameter (build-time search width).",
+    )
+    test_database_url: str | None = Field(
+        default=None,
+        description="Postgres URL for the indexer's DB-backed test suite. Never the dev database.",
+    )
+
     # Retrieval
     retrieval_top_k: int = Field(
         default=20,
