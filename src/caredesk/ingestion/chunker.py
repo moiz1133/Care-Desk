@@ -45,7 +45,13 @@ class Chunk(BaseModel):
 
 
 @lru_cache(maxsize=8)
-def _get_encoding(embedding_model: str) -> tiktoken.Encoding:
+def get_encoding(embedding_model: str) -> tiktoken.Encoding:
+    """The tiktoken encoding for `embedding_model`, cached per model name.
+
+    Public so other modules needing token counts consistent with this
+    chunker's (e.g. retrieval, for query token counting) reuse the same
+    resolution/caching instead of duplicating it.
+    """
     return tiktoken.encoding_for_model(embedding_model)
 
 
@@ -80,7 +86,7 @@ def chunk_document(doc: LoadedDocument, settings: Settings) -> list[Chunk]:
             "since persona_visibility is a retrieval-time security control."
         )
 
-    encoding = _get_encoding(settings.embedding_model)
+    encoding = get_encoding(settings.embedding_model)
     tokens = encoding.encode(doc.text)
     total_tokens = len(tokens)
 

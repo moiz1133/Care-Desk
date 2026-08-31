@@ -142,6 +142,14 @@ class Settings(BaseSettings):
         default=5,
         description="Number of reranked candidates passed to generation.",
     )
+    vector_retrieval_k: int = Field(
+        default=5,
+        description="Default number of results returned by the vector-only baseline retriever.",
+    )
+    query_embedding_cache_size: int = Field(
+        default=1000,
+        description="Max entries in the in-process exact-match query embedding cache.",
+    )
 
     # Decision thresholds
     confidence_threshold: float = Field(
