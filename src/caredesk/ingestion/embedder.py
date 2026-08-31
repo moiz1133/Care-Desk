@@ -144,3 +144,14 @@ async def embed_chunks(chunks: Sequence[Chunk], settings: Settings) -> list[Embe
 
     results = await asyncio.gather(*(embed_one_batch(batch) for batch in batches))
     return [embedded for batch_result in results for embedded in batch_result]
+
+
+async def embed_text(text: str, settings: Settings) -> list[float]:
+    """Embed a single string (e.g. a retrieval query) with the same model
+    and retry behaviour as `embed_chunks`, so index-time and query-time
+    embeddings are always produced the same way.
+    """
+    validate_embedding_dimension(settings)
+    client = AsyncOpenAI(api_key=settings.openai_api_key)
+    vectors = await _embed_batch_with_retry(client, settings, [text])
+    return vectors[0]
