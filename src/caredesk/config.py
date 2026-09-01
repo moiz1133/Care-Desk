@@ -173,6 +173,23 @@ class Settings(BaseSettings):
         description="Generator model output token price, used only for cost estimates.",
     )
 
+    # API
+    api_request_timeout_seconds: float = Field(
+        default=30.0,
+        description=(
+            "Outer bound for a /query request. Model calls have their own "
+            "timeouts already; this catches everything else that could hang."
+        ),
+    )
+    cors_allow_origins: list[str] = Field(
+        default_factory=lambda: ["*"],
+        description=(
+            "Permissive by default for local development. Must be tightened to "
+            "an explicit allowlist before any deployment outside a developer's "
+            "own machine."
+        ),
+    )
+
     # Decision thresholds
     confidence_threshold: float = Field(
         default=0.7,
