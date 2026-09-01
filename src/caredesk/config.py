@@ -151,6 +151,28 @@ class Settings(BaseSettings):
         description="Max entries in the in-process exact-match query embedding cache.",
     )
 
+    # Generation
+    min_relevance_score: float = Field(
+        default=0.3,
+        description="Refuse without calling the model if the top retrieval score is below this.",
+    )
+    max_answer_tokens: int = Field(
+        default=500,
+        description="Max tokens the generator model may produce for one answer.",
+    )
+    generation_temperature: float = Field(
+        default=0.0,
+        description="Generator sampling temperature. 0 for deterministic, eval-stable output.",
+    )
+    generator_input_price_per_million_tokens_usd: float = Field(
+        default=2.50,
+        description="Generator model input token price, used only for cost estimates.",
+    )
+    generator_output_price_per_million_tokens_usd: float = Field(
+        default=10.00,
+        description="Generator model output token price, used only for cost estimates.",
+    )
+
     # Decision thresholds
     confidence_threshold: float = Field(
         default=0.7,
