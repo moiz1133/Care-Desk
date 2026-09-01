@@ -52,6 +52,12 @@ ignore = []
 [tool.ruff.lint.isort]
 known-first-party = ["caredesk"]
 
+[tool.ruff.lint.flake8-bugbear]
+# FastAPI's DI pattern requires calling Depends()/Query()/etc. in argument
+# defaults -- that's how routes declare what to inject. B008 would otherwise
+# flag every route parameter that uses it.
+extend-immutable-calls = ["fastapi.Depends", "fastapi.Query", "fastapi.Path", "fastapi.Body"]
+
 [tool.ruff.format]
 quote-style = "double"
 
