@@ -21,6 +21,7 @@ from caredesk.api.main import app
 from caredesk.config import Settings
 from caredesk.generation.generator import GeneratorError
 from caredesk.generation.types import Citation, GeneratedAnswer
+from caredesk.observability.context import get_current_request_context
 from caredesk.retrieval.types import RetrievalResponse, RetrievalResult
 
 # ---------------------------------------------------------------------------
@@ -109,6 +110,8 @@ def _patch_pipeline(
         captured["query"] = query
         captured["persona"] = persona
         captured["k"] = k
+        request_context = get_current_request_context()
+        captured["request_context_client"] = request_context.client if request_context else None
         if retrieve_error is not None:
             raise retrieve_error
         assert retrieval is not None
@@ -380,3 +383,38 @@ async def test_persona_passed_through_to_retriever_unchanged(
     await client.post("/query", json={"query": "internal runbook question", "persona": "staff"})
 
     assert captured["persona"] == "staff"
+
+
+async def test_x_client_header_reaches_the_ambient_request_context(
+    monkeypatch: pytest.MonkeyPatch, client: AsyncClient, use_settings: type
+) -> None:
+    """commit 9: the X-Client header is what lets eval traffic (Week 1
+    Friday's harness, driving this same endpoint) be excluded from cost
+    and latency dashboards -- so it has to actually reach the context
+    tracing reads from, through the real middleware, not just be parsed
+    somewhere and dropped."""
+    use_settings.set(_settings())
+    captured = _patch_pipeline(
+        monkeypatch, retrieval=_retrieval_response([_retrieval_result()]), answer=_answer()
+    )
+
+    await client.post(
+        "/query",
+        json={"query": "hi", "persona": "patient"},
+        headers={"X-Client": "eval"},
+    )
+
+    assert captured["request_context_client"] == "eval"
+
+
+async def test_missing_x_client_header_defaults_to_api(
+    monkeypatch: pytest.MonkeyPatch, client: AsyncClient, use_settings: type
+) -> None:
+    use_settings.set(_settings())
+    captured = _patch_pipeline(
+        monkeypatch, retrieval=_retrieval_response([_retrieval_result()]), answer=_answer()
+    )
+
+    await client.post("/query", json={"query": "hi", "persona": "patient"})
+
+    assert captured["request_context_client"] == "api"

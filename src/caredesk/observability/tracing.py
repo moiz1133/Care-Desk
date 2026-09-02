@@ -33,6 +33,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import random
+import uuid
 from collections.abc import Iterator
 from contextlib import contextmanager
 from functools import lru_cache
@@ -41,11 +42,19 @@ from typing import Any, Literal
 from langfuse import Langfuse, propagate_attributes
 
 from caredesk.config import Settings
-from caredesk.observability.context import TraceState, bind_trace, get_current_trace
+from caredesk.observability.context import (
+    RequestContext,
+    TraceState,
+    bind_trace,
+    get_current_request_context,
+    get_current_trace,
+)
+from caredesk.observability.vocabulary import KNOWN_METADATA_KEYS, ClientType, TraceMetadataKey
 
 logger = logging.getLogger(__name__)
 
 _warned_no_op = False
+_warned_no_request_context = False
 
 
 @lru_cache(maxsize=1)
@@ -97,6 +106,24 @@ def _trace_id_for(request_id: str) -> str:
     return request_id.replace("-", "").lower()
 
 
+def _check_metadata_keys(metadata: Any, *, span_name: str) -> None:
+    """Warn (never raise) if `metadata` carries a key outside the closed
+    vocabulary in `observability.vocabulary`.
+
+    A typo'd or ad-hoc metadata key is invisible in a filtering UI -- it
+    just silently fails to match anything -- so this is the one place
+    that class of mistake gets surfaced, regardless of which span it came
+    from.
+    """
+    if not isinstance(metadata, dict):
+        return
+    unknown = set(metadata) - KNOWN_METADATA_KEYS
+    if unknown:
+        logger.warning(
+            "unknown_metadata_key", extra={"span": span_name, "unknown_keys": sorted(unknown)}
+        )
+
+
 class SpanHandle:
     """Update-only view over an active (possibly absent) observation.
 
@@ -111,6 +138,8 @@ class SpanHandle:
         self._name = name
 
     def update(self, **kwargs: Any) -> None:
+        if "metadata" in kwargs:
+            _check_metadata_keys(kwargs["metadata"], span_name=self._name)
         if self._raw is None:
             return
         try:
@@ -123,6 +152,8 @@ class SpanHandle:
 def _observation(
     settings: Settings, name: str, *, as_type: Literal["span", "generation"], **kwargs: Any
 ) -> Iterator[SpanHandle]:
+    if "metadata" in kwargs:
+        _check_metadata_keys(kwargs["metadata"], span_name=name)
     trace = get_current_trace()
     # No bound trace (e.g. scripts/ask.py run outside any request) still
     # gets real spans -- there's no sampling context to consult, so default
@@ -181,35 +212,56 @@ class QueryTrace:
     def trace_id(self) -> str:
         return self.state.trace_id
 
-    def finalize(self, *, output: str | None, tags: list[str], metadata: dict[str, Any]) -> None:
-        """Record the final outcome on the trace root.
+    def finalize(self, *, output: str | None, metadata: dict[str, Any]) -> None:
+        """Record the pipeline's outcome on the trace root.
 
         Always called for real, regardless of the sampling roll -- this is
         the one write that makes "errors and refusals are always traced"
-        true without buffering every span. `tags` is recorded in metadata
-        rather than as first-class Langfuse tags: Langfuse's tag/session
-        propagation (`propagate_attributes`) must run before spans are
-        created to apply correctly, but retrieval_strategy and
-        prompt_version -- two of the three values requested for `tags` --
-        are only known after the pipeline has already run. Persona is
-        propagated for real at trace start (see start_query_trace); the
-        fuller combination lives here instead.
+        true without buffering every span. `metadata` should carry only
+        outcome keys (answered, refused, refusal_reason, results_returned,
+        ...) -- persona/client/turn_index/environment are request
+        invariants already written once, at trace creation, by
+        `start_query_trace`; writing them again here is exactly the
+        duplication this module exists to prevent, so don't.
         """
         if metadata.get("refused") or metadata.get("error"):
             self.state.force()
-        self._handle.update(output=output, metadata={**metadata, "tags": tags})
+        self._handle.update(output=output, metadata=metadata)
+
+
+def _placeholder_request_context(settings: Settings) -> RequestContext:
+    """Identity for a trace opened with no bound RequestContext.
+
+    Background jobs and one-off scripts (scripts/ask.py, scripts/search.py)
+    call retrieve()/generate_answer() directly, outside any HTTP request,
+    so there's nothing for api.middleware to have bound. Warned once, not
+    every call -- this path is expected, not a bug, for that usage.
+    """
+    global _warned_no_request_context
+    if not _warned_no_request_context:
+        logger.warning("trace_started_without_request_context")
+        _warned_no_request_context = True
+    return RequestContext(
+        request_id=str(uuid.uuid4()),
+        environment=settings.environment,
+        client=str(ClientType.CLI),
+        persona="unknown",
+        conversation_id="unknown",
+    )
 
 
 @contextmanager
-def start_query_trace(
-    settings: Settings,
-    *,
-    request_id: str,
-    conversation_id: str,
-    query: str,
-    persona: str,
-) -> Iterator[QueryTrace]:
+def start_query_trace(settings: Settings, *, query: str) -> Iterator[QueryTrace]:
     """Open the root `caredesk.query` span for one /query request.
+
+    Identity (request_id, persona, conversation_id, client, turn_index,
+    environment) comes entirely from the ambient `RequestContext` --
+    established once by `api.middleware`, enriched once by the route --
+    never as parameters passed in here. That is what makes "every span
+    inherits persona/conversation_id/client automatically, no extra
+    wiring" true by construction: this function is the only place that
+    ever translates identity into Langfuse's tag/session/metadata
+    mechanisms, and it does so once, from one source.
 
     Unlike `start_span`/`start_generation`, the root is always created for
     real whenever tracing is enabled at all -- sampling only gates the
@@ -218,24 +270,33 @@ def start_query_trace(
     outcome; only the retrieve/generate/verify detail underneath is
     thinner.
     """
+    request_context = get_current_request_context() or _placeholder_request_context(settings)
+    request_id = request_context.request_id
+    persona = request_context.persona or "unknown"
+    conversation_id = request_context.conversation_id or "unknown"
+    client = request_context.client
+
     sampled = random.random() < settings.trace_sample_rate
     trace_id = _trace_id_for(request_id)
-    state = TraceState(
-        request_id=request_id, conversation_id=conversation_id, trace_id=trace_id, sampled=sampled
-    )
+    state = TraceState(trace_id=trace_id, sampled=sampled)
 
-    client = get_langfuse_client(settings)
+    langfuse_client = get_langfuse_client(settings)
 
     root_cm = None
     prop_cm = None
     raw_root = None
-    if client is not None:
+    if langfuse_client is not None:
         try:
-            root_cm = client.start_as_current_observation(
+            root_cm = langfuse_client.start_as_current_observation(
                 name="caredesk.query",
                 trace_context={"trace_id": trace_id},
                 input=query,
-                metadata={"persona": persona, "environment": settings.environment},
+                metadata={
+                    TraceMetadataKey.PERSONA: persona,
+                    TraceMetadataKey.CLIENT: client,
+                    TraceMetadataKey.TURN_INDEX: request_context.turn_index,
+                    TraceMetadataKey.ENVIRONMENT: request_context.environment,
+                },
             )
             raw_root = root_cm.__enter__()
         except Exception:
@@ -246,12 +307,16 @@ def start_query_trace(
 
         if raw_root is not None:
             try:
+                # persona and client are the two closed-set dimensions worth
+                # filtering the trace LIST on directly; conversation_id maps
+                # to session_id (not a tag -- too high-cardinality to filter
+                # by value, but exactly what groups a conversation's traces).
                 prop_cm = propagate_attributes(
                     user_id=conversation_id,
                     session_id=conversation_id,
                     trace_name="caredesk.query",
-                    environment=settings.environment,
-                    tags=[persona],
+                    environment=request_context.environment,
+                    tags=[persona, client],
                 )
                 prop_cm.__enter__()
             except Exception:

@@ -25,6 +25,7 @@ from caredesk.ingestion.chunker import get_encoding
 from caredesk.ingestion.embedder import embed_text, estimate_cost
 from caredesk.ingestion.loader import SourceType
 from caredesk.observability.tracing import start_generation, start_span
+from caredesk.observability.vocabulary import SpanMetadataKey
 from caredesk.retrieval.types import RetrievalResponse, RetrievalResult
 from caredesk.storage.models import ChunkRecord, DocumentRecord
 from caredesk.storage.session import session_scope
@@ -112,13 +113,19 @@ async def retrieve(
 
     overall_start = time.monotonic()
 
+    # persona is deliberately not in this span's input or metadata: it's
+    # invariant for the whole request and already on the trace (a tag and
+    # trace-level metadata, set once in start_query_trace) -- repeating it
+    # per span would just be the same duplication commit 9 removed
+    # elsewhere, and every span already inherits it automatically via
+    # Langfuse's propagate_attributes.
     with start_span(
         settings,
         "retrieve",
-        input={"query": query, "persona": validated_persona, "k": top_k},
+        input={"query": query, "k": top_k},
         metadata={
-            "strategy": "vector_only",
-            "source_type_filter": _source_type_values(source_types),
+            SpanMetadataKey.STRATEGY: "vector_only",
+            SpanMetadataKey.SOURCE_TYPE_FILTER: _source_type_values(source_types),
         },
     ) as retrieve_span:
         # --- Query embedding (exact-match cached) -------------------------
@@ -144,7 +151,10 @@ async def retrieve(
             # make cache behaviour invisible in the trace, which is exactly
             # what needs to be visible once Week 3's semantic cache lands.
             embed_span.update(
-                metadata={"cache_hit": cache_hit, "latency_ms": embed_latency_ms},
+                metadata={
+                    SpanMetadataKey.CACHE_HIT: cache_hit,
+                    SpanMetadataKey.LATENCY_MS: embed_latency_ms,
+                },
                 usage_details={"input": query_tokens},
                 cost_details={"total": 0.0 if cache_hit else estimate_cost(query_tokens, settings)},
             )
@@ -180,7 +190,19 @@ async def retrieve(
         with start_span(
             settings,
             "vector_search",
-            metadata={"k": top_k, "persona_filter_applied": list(allowed_visibility)},
+            metadata={
+                SpanMetadataKey.K: top_k,
+                SpanMetadataKey.PERSONA_FILTER_APPLIED: list(allowed_visibility),
+                # How many candidates the persona filter actually excluded
+                # would need a second query (the same ANN search without
+                # the persona_visibility WHERE clause) to compute -- not
+                # worth doubling every retrieval's DB cost just to answer
+                # "did filtering matter here". Left None rather than
+                # omitted: the key exists in the known vocabulary from day
+                # one, ready for a cheap answer (e.g. a cached per-corpus
+                # persona/source_type histogram) if one shows up later.
+                SpanMetadataKey.PERSONA_FILTER_EXCLUDED_COUNT: None,
+            },
         ) as search_span:
             with session_scope(settings) as session:
                 rows = session.execute(stmt).all()
@@ -207,7 +229,7 @@ async def retrieve(
             # leaflet content) never lands in this span's output.
             search_span.update(
                 output=[{"chunk_id": r.chunk_id, "score": r.score} for r in results],
-                metadata={"latency_ms": db_latency_ms},
+                metadata={SpanMetadataKey.LATENCY_MS: db_latency_ms},
             )
 
         if len(results) < top_k:

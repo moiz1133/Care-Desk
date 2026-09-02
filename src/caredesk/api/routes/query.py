@@ -15,6 +15,7 @@ from uuid import uuid4
 from fastapi import APIRouter, Depends, Query, Request
 
 from caredesk.api.dependencies import get_settings_dependency
+from caredesk.api.middleware import set_query_identity
 from caredesk.api.schemas import (
     CitationOut,
     ContextChunkOut,
@@ -40,16 +41,13 @@ async def query(
     settings: Settings = Depends(get_settings_dependency),
 ) -> QueryResponse:
     conversation_id = body.conversation_id or str(uuid4())
+    # Enriches the RequestContext api.middleware already bound for this
+    # request -- persona/conversation_id aren't known until the body
+    # validates, which is why this can't happen in the middleware itself.
+    set_query_identity(persona=body.persona, conversation_id=conversation_id)
 
     result = await asyncio.wait_for(
-        run_query_pipeline(
-            body.query,
-            body.persona,
-            settings,
-            request_id=request.state.request_id,
-            conversation_id=conversation_id,
-            k=body.k,
-        ),
+        run_query_pipeline(body.query, body.persona, settings, k=body.k),
         timeout=settings.api_request_timeout_seconds,
     )
     retrieval = result.retrieval
