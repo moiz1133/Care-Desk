@@ -24,6 +24,7 @@ from caredesk.api.routes.query import router as query_router
 from caredesk.config import get_settings
 from caredesk.generation.generator import GeneratorError
 from caredesk.ingestion.embedder import EmbedderError
+from caredesk.observability import tracing
 
 logger = logging.getLogger(__name__)
 
@@ -59,11 +60,14 @@ def _install_request_id_log_factory() -> None:
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """Startup/shutdown hook.
 
-    Will eventually manage DB connection pools, Redis clients, and the
-    Langfuse client. No-op for now besides installing log correlation.
+    Will eventually manage DB connection pools and Redis clients too. On
+    shutdown, flushes any buffered Langfuse spans -- bounded by
+    `Settings.trace_flush_timeout_seconds` so a slow/unreachable Langfuse
+    backend can't hang process shutdown; see observability/tracing.py.
     """
     _install_request_id_log_factory()
     yield
+    await tracing.shutdown(get_settings())
 
 
 async def _request_context_middleware(

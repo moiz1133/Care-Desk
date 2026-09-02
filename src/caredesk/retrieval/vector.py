@@ -22,8 +22,9 @@ from sqlalchemy import select
 
 from caredesk.config import Settings
 from caredesk.ingestion.chunker import get_encoding
-from caredesk.ingestion.embedder import embed_text
+from caredesk.ingestion.embedder import embed_text, estimate_cost
 from caredesk.ingestion.loader import SourceType
+from caredesk.observability.tracing import start_generation, start_span
 from caredesk.retrieval.types import RetrievalResponse, RetrievalResult
 from caredesk.storage.models import ChunkRecord, DocumentRecord
 from caredesk.storage.session import session_scope
@@ -49,6 +50,12 @@ def _validate_persona(persona: str) -> str:
     if persona not in _VALID_PERSONAS:
         raise RetrievalError(f"Invalid persona {persona!r}; must be one of {_VALID_PERSONAS}")
     return persona
+
+
+def _source_type_values(source_types: Sequence[SourceType] | None) -> list[str] | None:
+    if source_types is None:
+        return None
+    return [source_type.value for source_type in source_types]
 
 
 class _QueryEmbeddingCache:
@@ -105,96 +112,143 @@ async def retrieve(
 
     overall_start = time.monotonic()
 
-    # --- Query embedding (exact-match cached) -----------------------------
-    embed_start = time.monotonic()
-    cache = _get_query_cache(settings.query_embedding_cache_size)
-    cached_vector = cache.get(query)
-
-    encoding = get_encoding(settings.embedding_model)
-    query_tokens = len(encoding.encode(query))
-
-    if cached_vector is not None:
-        query_vector = cached_vector
-    else:
-        query_vector = await embed_text(query, settings)
-        cache.set(query, query_vector)
-    embed_latency_ms = (time.monotonic() - embed_start) * 1000
-
-    # --- Database query ----------------------------------------------------
-    db_start = time.monotonic()
-    allowed_visibility = _ALLOWED_VISIBILITY[validated_persona]
-
-    # pgvector's <=> operator returns cosine DISTANCE (0 = identical chunk,
-    # up to 2 = opposite), not similarity. Converting with (1 - distance)
-    # below is what turns that into a similarity score where higher is
-    # better — returning the raw distance as "score" would still rank
-    # correctly but the numbers would read exactly backwards.
-    distance = ChunkRecord.embedding.cosine_distance(query_vector)
-
-    stmt = (
-        select(
-            ChunkRecord, DocumentRecord.title, DocumentRecord.filename, distance.label("distance")
-        )
-        .join(DocumentRecord, ChunkRecord.doc_id == DocumentRecord.doc_id)
-        .where(ChunkRecord.persona_visibility.in_(allowed_visibility))
-    )
-    if source_types is not None:
-        stmt = stmt.where(
-            ChunkRecord.source_type.in_([source_type.value for source_type in source_types])
-        )
-    stmt = stmt.order_by(distance).limit(top_k)
-
-    with session_scope(settings) as session:
-        rows = session.execute(stmt).all()
-    db_latency_ms = (time.monotonic() - db_start) * 1000
-
-    results = [
-        RetrievalResult(
-            chunk_id=chunk.chunk_id,
-            doc_id=chunk.doc_id,
-            text=chunk.text,
-            score=1.0 - chunk_distance,
-            rank=rank,
-            source_type=chunk.source_type,
-            persona_visibility=chunk.persona_visibility,
-            title=title,
-            filename=filename,
-            chunk_index=chunk.chunk_index,
-            token_count=chunk.token_count,
-        )
-        for rank, (chunk, title, filename, chunk_distance) in enumerate(rows, start=1)
-    ]
-
-    if len(results) < top_k:
-        # HNSW is an approximate index; combined with a restrictive persona
-        # (and optional source_type) WHERE clause, it can under-return
-        # relative to k even when k matching rows exist, especially on a
-        # small corpus. Logged, not worked around — see module docstring.
-        logger.debug(
-            "Retrieved fewer results than requested: %d/%d (persona=%s, source_types=%s)",
-            len(results),
-            top_k,
-            validated_persona,
-            [source_type.value for source_type in source_types] if source_types else None,
-        )
-
-    total_latency_ms = (time.monotonic() - overall_start) * 1000
-
-    logger.info(
-        "vector_retrieval",
-        extra={
-            "query_tokens": query_tokens,
-            "k_requested": top_k,
-            "results_returned": len(results),
-            "top_score": results[0].score if results else None,
-            "bottom_score": results[-1].score if results else None,
-            "embed_latency_ms": embed_latency_ms,
-            "db_latency_ms": db_latency_ms,
-            "total_latency_ms": total_latency_ms,
-            "persona": validated_persona,
+    with start_span(
+        settings,
+        "retrieve",
+        input={"query": query, "persona": validated_persona, "k": top_k},
+        metadata={
             "strategy": "vector_only",
+            "source_type_filter": _source_type_values(source_types),
         },
-    )
+    ) as retrieve_span:
+        # --- Query embedding (exact-match cached) -------------------------
+        embed_start = time.monotonic()
+        cache = _get_query_cache(settings.query_embedding_cache_size)
+        cached_vector = cache.get(query)
+        cache_hit = cached_vector is not None
+
+        encoding = get_encoding(settings.embedding_model)
+        query_tokens = len(encoding.encode(query))
+
+        with start_generation(
+            settings, "embed_query", model=settings.embedding_model, input=query
+        ) as embed_span:
+            if cached_vector is not None:
+                query_vector = cached_vector
+            else:
+                query_vector = await embed_text(query, settings)
+                cache.set(query, query_vector)
+            embed_latency_ms = (time.monotonic() - embed_start) * 1000
+
+            # Emitted even on a cache hit -- a silently skipped span would
+            # make cache behaviour invisible in the trace, which is exactly
+            # what needs to be visible once Week 3's semantic cache lands.
+            embed_span.update(
+                metadata={"cache_hit": cache_hit, "latency_ms": embed_latency_ms},
+                usage_details={"input": query_tokens},
+                cost_details={"total": 0.0 if cache_hit else estimate_cost(query_tokens, settings)},
+            )
+
+        # --- Database query --------------------------------------------------
+        db_start = time.monotonic()
+        allowed_visibility = _ALLOWED_VISIBILITY[validated_persona]
+
+        # pgvector's <=> operator returns cosine DISTANCE (0 = identical
+        # chunk, up to 2 = opposite), not similarity. Converting with
+        # (1 - distance) below is what turns that into a similarity score
+        # where higher is better — returning the raw distance as "score"
+        # would still rank correctly but the numbers would read exactly
+        # backwards.
+        distance = ChunkRecord.embedding.cosine_distance(query_vector)
+
+        stmt = (
+            select(
+                ChunkRecord,
+                DocumentRecord.title,
+                DocumentRecord.filename,
+                distance.label("distance"),
+            )
+            .join(DocumentRecord, ChunkRecord.doc_id == DocumentRecord.doc_id)
+            .where(ChunkRecord.persona_visibility.in_(allowed_visibility))
+        )
+        if source_types is not None:
+            stmt = stmt.where(
+                ChunkRecord.source_type.in_([source_type.value for source_type in source_types])
+            )
+        stmt = stmt.order_by(distance).limit(top_k)
+
+        with start_span(
+            settings,
+            "vector_search",
+            metadata={"k": top_k, "persona_filter_applied": list(allowed_visibility)},
+        ) as search_span:
+            with session_scope(settings) as session:
+                rows = session.execute(stmt).all()
+            db_latency_ms = (time.monotonic() - db_start) * 1000
+
+            results = [
+                RetrievalResult(
+                    chunk_id=chunk.chunk_id,
+                    doc_id=chunk.doc_id,
+                    text=chunk.text,
+                    score=1.0 - chunk_distance,
+                    rank=rank,
+                    source_type=chunk.source_type,
+                    persona_visibility=chunk.persona_visibility,
+                    title=title,
+                    filename=filename,
+                    chunk_index=chunk.chunk_index,
+                    token_count=chunk.token_count,
+                )
+                for rank, (chunk, title, filename, chunk_distance) in enumerate(rows, start=1)
+            ]
+
+            # Ranked IDs and scores only -- chunk text (possibly clinical
+            # leaflet content) never lands in this span's output.
+            search_span.update(
+                output=[{"chunk_id": r.chunk_id, "score": r.score} for r in results],
+                metadata={"latency_ms": db_latency_ms},
+            )
+
+        if len(results) < top_k:
+            # HNSW is an approximate index; combined with a restrictive
+            # persona (and optional source_type) WHERE clause, it can
+            # under-return relative to k even when k matching rows exist,
+            # especially on a small corpus. Logged, not worked around — see
+            # module docstring.
+            logger.debug(
+                "Retrieved fewer results than requested: %d/%d (persona=%s, source_types=%s)",
+                len(results),
+                top_k,
+                validated_persona,
+                [source_type.value for source_type in source_types] if source_types else None,
+            )
+
+        total_latency_ms = (time.monotonic() - overall_start) * 1000
+
+        logger.info(
+            "vector_retrieval",
+            extra={
+                "query_tokens": query_tokens,
+                "k_requested": top_k,
+                "results_returned": len(results),
+                "top_score": results[0].score if results else None,
+                "bottom_score": results[-1].score if results else None,
+                "embed_latency_ms": embed_latency_ms,
+                "db_latency_ms": db_latency_ms,
+                "total_latency_ms": total_latency_ms,
+                "persona": validated_persona,
+                "strategy": "vector_only",
+            },
+        )
+
+        retrieve_span.update(
+            output={
+                "results_returned": len(results),
+                "top_score": results[0].score if results else None,
+                "bottom_score": results[-1].score if results else None,
+            }
+        )
 
     return RetrievalResponse(
         query=query,

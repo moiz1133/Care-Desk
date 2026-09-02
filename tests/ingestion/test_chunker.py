@@ -17,8 +17,7 @@ EMBEDDING_MODEL = "text-embedding-3-small"
 def _settings(**overrides: object) -> Settings:
     base: dict[str, object] = {
         "openai_api_key": "test-key",
-        "langfuse_public_key": "test-pub",
-        "langfuse_secret_key": "test-secret",
+        "langfuse_enabled": False,
         "embedding_model": EMBEDDING_MODEL,
     }
     base.update(overrides)

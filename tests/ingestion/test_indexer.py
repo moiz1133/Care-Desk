@@ -45,8 +45,7 @@ from caredesk.storage.session import get_engine, session_scope
 def _make_settings(**overrides: object) -> Settings:
     base: dict[str, object] = {
         "openai_api_key": "test-key",
-        "langfuse_public_key": "test-pub",
-        "langfuse_secret_key": "test-secret",
+        "langfuse_enabled": False,
         "embedding_cost_ceiling_usd": 1000.0,
     }
     base.update(overrides)
