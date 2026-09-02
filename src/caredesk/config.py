@@ -50,15 +50,37 @@ class Settings(BaseSettings):
     )
 
     # Langfuse
-    langfuse_public_key: str = Field(
-        description="Langfuse public key. Required, no default.",
+    # Optional, unlike openai_api_key above: commit 8 requires the app to
+    # start and serve requests with tracing in no-op mode when these are
+    # absent, rather than failing Settings() construction outright.
+    langfuse_public_key: str | None = Field(
+        default=None,
+        description="Langfuse public key. Tracing runs in no-op mode when absent.",
     )
-    langfuse_secret_key: str = Field(
-        description="Langfuse secret key. Required, no default.",
+    langfuse_secret_key: str | None = Field(
+        default=None,
+        description="Langfuse secret key. Tracing runs in no-op mode when absent.",
     )
     langfuse_host: str = Field(
         default="https://cloud.langfuse.com",
         description="Langfuse ingestion host.",
+    )
+    langfuse_enabled: bool = Field(
+        default=True,
+        description="Master switch for tracing. False forces no-op mode even with credentials set.",
+    )
+    trace_sample_rate: float = Field(
+        default=1.0,
+        description="Fraction of traces recorded in full detail, 0.0-1.0. Errors and refusals "
+        "are always recorded regardless -- see observability/tracing.py.",
+    )
+    trace_flush_timeout_seconds: float = Field(
+        default=5.0,
+        description="Timeout for flushing buffered spans to Langfuse on application shutdown.",
+    )
+    environment: str = Field(
+        default="dev",
+        description="Deployment environment tag attached to every trace (dev/staging/prod).",
     )
 
     # Models

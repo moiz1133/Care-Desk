@@ -23,8 +23,7 @@ from caredesk.retrieval.types import RetrievalResponse, RetrievalResult
 def _settings(**overrides: object) -> Settings:
     base: dict[str, object] = {
         "openai_api_key": "test-key",
-        "langfuse_public_key": "test-pub",
-        "langfuse_secret_key": "test-secret",
+        "langfuse_enabled": False,
     }
     base.update(overrides)
     return Settings(**base)  # type: ignore[arg-type]

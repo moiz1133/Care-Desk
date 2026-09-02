@@ -42,7 +42,14 @@ async def query(
     conversation_id = body.conversation_id or str(uuid4())
 
     result = await asyncio.wait_for(
-        run_query_pipeline(body.query, body.persona, settings, k=body.k),
+        run_query_pipeline(
+            body.query,
+            body.persona,
+            settings,
+            request_id=request.state.request_id,
+            conversation_id=conversation_id,
+            k=body.k,
+        ),
         timeout=settings.api_request_timeout_seconds,
     )
     retrieval = result.retrieval
