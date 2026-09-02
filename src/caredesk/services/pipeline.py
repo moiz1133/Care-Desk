@@ -8,10 +8,12 @@ replace what happens *after* a `GeneratedAnswer` exists without touching
 this module or the route that calls it.
 
 This is also where the one `caredesk.query` trace per request is opened
-(see `observability.tracing`) -- request_id and conversation_id live in
-the API layer, and `retrieve()`/`generate_answer()` are deliberately kept
-unaware of tracing arguments, so this orchestration seam is where the two
-meet.
+(see `observability.tracing`). Unlike commit 8, this module no longer
+threads request_id/conversation_id through as parameters:
+`start_query_trace` reads them from the ambient `RequestContext` that
+`api.middleware` establishes and the route enriches, which is what keeps
+identity sourced from exactly one place instead of being passed down
+redundantly.
 """
 
 from __future__ import annotations
@@ -23,6 +25,7 @@ from caredesk.config import Settings
 from caredesk.generation.generator import generate_answer
 from caredesk.generation.types import GeneratedAnswer
 from caredesk.observability.tracing import start_query_trace
+from caredesk.observability.vocabulary import TraceMetadataKey
 from caredesk.retrieval.types import RetrievalResponse
 from caredesk.retrieval.vector import retrieve
 
@@ -43,8 +46,6 @@ async def run_query_pipeline(
     persona: str,
     settings: Settings,
     *,
-    request_id: str,
-    conversation_id: str,
     k: int | None = None,
 ) -> PipelineResult:
     """Retrieve context for `query`, then generate a grounded answer from it.
@@ -56,13 +57,7 @@ async def run_query_pipeline(
     start = time.monotonic()
     k_requested = k if k is not None else settings.vector_retrieval_k
 
-    with start_query_trace(
-        settings,
-        request_id=request_id,
-        conversation_id=conversation_id,
-        query=query,
-        persona=persona,
-    ) as trace:
+    with start_query_trace(settings, query=query) as trace:
         retrieval = await retrieve(query, persona, settings, k=k_requested)
         generation = await generate_answer(query, persona, retrieval, settings)
 
@@ -70,18 +65,16 @@ async def run_query_pipeline(
 
         trace.finalize(
             output=generation.answer_text if not generation.refused else generation.refusal_reason,
-            tags=[persona, retrieval.strategy, generation.prompt_version],
             metadata={
-                "persona": persona,
-                "k": k_requested,
-                "answered": not generation.refused,
-                "refused": generation.refused,
-                "refusal_reason": generation.refusal_reason,
-                "retrieval_strategy": retrieval.strategy,
-                "prompt_version": generation.prompt_version,
-                "citation_count": len(generation.citations),
-                "total_latency_ms": total_latency_ms,
-                "environment": settings.environment,
+                TraceMetadataKey.K: k_requested,
+                TraceMetadataKey.ANSWERED: not generation.refused,
+                TraceMetadataKey.REFUSED: generation.refused,
+                TraceMetadataKey.REFUSAL_REASON: generation.refusal_reason,
+                TraceMetadataKey.RETRIEVAL_STRATEGY: retrieval.strategy,
+                TraceMetadataKey.RESULTS_RETURNED: len(retrieval.results),
+                TraceMetadataKey.PROMPT_VERSION: generation.prompt_version,
+                TraceMetadataKey.CITATION_COUNT: len(generation.citations),
+                TraceMetadataKey.TOTAL_LATENCY_MS: total_latency_ms,
             },
         )
 

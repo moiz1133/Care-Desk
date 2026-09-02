@@ -20,6 +20,8 @@ import pytest
 from sqlalchemy.exc import OperationalError
 
 from caredesk.config import Settings
+from caredesk.observability import tracing as tracing_module
+from caredesk.observability.vocabulary import KNOWN_METADATA_KEYS
 from caredesk.retrieval import vector as vector_module
 from caredesk.retrieval.vector import RetrievalError, retrieve
 from caredesk.storage.models import Base, ChunkRecord, DocumentRecord
@@ -155,6 +157,49 @@ def _seed_chunk(
                 indexed_at=now,
             )
         )
+
+
+class _RecordingObservation:
+    """Minimal Langfuse span/generation stand-in: records every input and
+    metadata dict it's given, separately, across both creation and
+    .update() calls. Kept separate because they're validated differently:
+    metadata keys must stay within the closed vocabulary, input is
+    free-form payload -- but input is exactly where the audited persona
+    leak lived (`input={"query": ..., "persona": ..., "k": ...}`), so it
+    still needs checking for that one invariant."""
+
+    def __init__(self, name: str, kwargs: dict[str, object]) -> None:
+        self.name = name
+        self.inputs: list[dict[str, object]] = []
+        self.metadata_dicts: list[dict[str, object]] = []
+        self._collect(kwargs)
+
+    def _collect(self, kwargs: dict[str, object]) -> None:
+        if isinstance(kwargs.get("input"), dict):
+            self.inputs.append(kwargs["input"])  # type: ignore[arg-type]
+        if isinstance(kwargs.get("metadata"), dict):
+            self.metadata_dicts.append(kwargs["metadata"])  # type: ignore[arg-type]
+
+    def update(self, **kwargs: object) -> None:
+        self._collect(kwargs)
+
+    def __enter__(self) -> _RecordingObservation:
+        return self
+
+    def __exit__(self, *exc_info: object) -> bool:
+        return False
+
+
+class _RecordingLangfuseClient:
+    def __init__(self) -> None:
+        self.observations: list[_RecordingObservation] = []
+
+    def start_as_current_observation(
+        self, *, name: str, as_type: str = "span", **kwargs: object
+    ) -> _RecordingObservation:
+        obs = _RecordingObservation(name, kwargs)
+        self.observations.append(obs)
+        return obs
 
 
 def _patch_query_embedding(monkeypatch: pytest.MonkeyPatch, active_dims: list[int]) -> list[str]:
@@ -323,3 +368,30 @@ async def test_query_embedding_cache_makes_one_embedding_call_for_repeated_query
     await retrieve("what is my copay", "patient", settings)
 
     assert len(embed_calls) == 1
+
+
+async def test_spans_only_use_known_metadata_keys_and_never_repeat_persona(
+    clean_db: Settings, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Exercises the real retrieve() -- not a mock of it -- so this catches
+    an actual ad-hoc metadata key or persona leak in vector.py, not just a
+    typo in a test double. Persona is a request-level invariant (a trace
+    tag + trace metadata, set once in start_query_trace); it must never
+    reappear in a span's own input/metadata, which is exactly the bug
+    commit 9 found and fixed on the `retrieve` span."""
+    settings = clean_db
+    _seed_chunk(settings, doc_id="doc_a", persona_visibility="patient", active_dims=[0])
+    _patch_query_embedding(monkeypatch, [0])
+
+    client = _RecordingLangfuseClient()
+    monkeypatch.setattr(tracing_module, "get_langfuse_client", lambda settings: client)
+
+    await retrieve("what is my copay", "patient", settings)
+
+    assert client.observations, "expected retrieve() to emit spans"
+    for obs in client.observations:
+        for metadata in obs.metadata_dicts:
+            unknown = set(metadata) - KNOWN_METADATA_KEYS
+            assert not unknown, f"{obs.name} used unknown metadata key(s) {unknown}"
+        for payload in [*obs.inputs, *obs.metadata_dicts]:
+            assert "persona" not in payload, f"{obs.name} leaked persona into a span"

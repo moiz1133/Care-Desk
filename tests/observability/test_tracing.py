@@ -11,6 +11,8 @@ actually see.
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Iterator
+from contextlib import contextmanager
 from contextvars import ContextVar
 from typing import Any
 
@@ -18,7 +20,11 @@ import pytest
 
 from caredesk.config import Settings
 from caredesk.observability import tracing
-from caredesk.observability.context import get_current_trace
+from caredesk.observability.context import (
+    RequestContext,
+    bind_request_context,
+    get_current_trace,
+)
 
 # ---------------------------------------------------------------------------
 # Fakes
@@ -127,6 +133,28 @@ def _settings(**overrides: object) -> Settings:
     return Settings(**base)  # type: ignore[arg-type]
 
 
+@contextmanager
+def _query_identity(
+    *,
+    request_id: str,
+    conversation_id: str = "c1",
+    persona: str = "patient",
+    environment: str = "dev",
+    client: str = "api",
+) -> Iterator[RequestContext]:
+    """What api.middleware + the route establish for a real request,
+    collapsed into one binding for tests that only care about tracing."""
+    context = RequestContext(
+        request_id=request_id,
+        environment=environment,
+        client=client,
+        persona=persona,
+        conversation_id=conversation_id,
+    )
+    with bind_request_context(context):
+        yield context
+
+
 def _use_fake_client(monkeypatch: pytest.MonkeyPatch) -> FakeLangfuseClient:
     client = FakeLangfuseClient()
     monkeypatch.setattr(tracing, "get_langfuse_client", lambda settings: client)
@@ -143,13 +171,10 @@ def test_successful_query_produces_expected_span_hierarchy(monkeypatch: pytest.M
     client = _use_fake_client(monkeypatch)
     settings = _settings()
 
-    with tracing.start_query_trace(
-        settings,
-        request_id="11111111-1111-4111-8111-111111111111",
-        conversation_id="c1",
-        query="q",
-        persona="patient",
-    ) as trace:
+    with (
+        _query_identity(request_id="11111111-1111-4111-8111-111111111111"),
+        tracing.start_query_trace(settings, query="q") as trace,
+    ):
         with tracing.start_span(settings, "retrieve"):
             with tracing.start_generation(settings, "embed_query", model="text-embedding-3-small"):
                 pass
@@ -160,9 +185,7 @@ def test_successful_query_produces_expected_span_hierarchy(monkeypatch: pytest.M
         with tracing.start_span(settings, "verify_citations"):
             pass
 
-        trace.finalize(
-            output="answer", tags=["patient", "vector_only", "v1"], metadata={"refused": False}
-        )
+        trace.finalize(output="answer", metadata={"refused": False})
 
     names_and_parents = [
         (obs.name, obs.parent.name if obs.parent else None) for obs in client.calls
@@ -184,9 +207,10 @@ def test_trace_id_is_request_id_reformatted_not_a_separate_id(
     settings = _settings()
     request_id = "618f734e-f168-486d-bff3-700740b1cc38"
 
-    with tracing.start_query_trace(
-        settings, request_id=request_id, conversation_id="c1", query="q", persona="patient"
-    ) as trace:
+    with (
+        _query_identity(request_id=request_id),
+        tracing.start_query_trace(settings, query="q") as trace,
+    ):
         pass
 
     assert trace.trace_id == request_id.replace("-", "")
@@ -262,16 +286,12 @@ def test_refusal_is_traced_with_refusal_reason_in_metadata(monkeypatch: pytest.M
     client = _use_fake_client(monkeypatch)
     settings = _settings()
 
-    with tracing.start_query_trace(
-        settings,
-        request_id="22222222-2222-4222-8222-222222222222",
-        conversation_id="c1",
-        query="q",
-        persona="patient",
-    ) as trace:
+    with (
+        _query_identity(request_id="22222222-2222-4222-8222-222222222222"),
+        tracing.start_query_trace(settings, query="q") as trace,
+    ):
         trace.finalize(
             output="no_results",
-            tags=["patient", "vector_only", "v1"],
             metadata={"refused": True, "refusal_reason": "no_results", "answered": False},
         )
 
@@ -311,18 +331,15 @@ async def test_span_nesting_survives_an_await_boundary(monkeypatch: pytest.Monke
     client = _use_fake_client(monkeypatch)
     settings = _settings()
 
-    with tracing.start_query_trace(
-        settings,
-        request_id="33333333-3333-4333-8333-333333333333",
-        conversation_id="c1",
-        query="q",
-        persona="patient",
-    ) as trace:
+    with (
+        _query_identity(request_id="33333333-3333-4333-8333-333333333333"),
+        tracing.start_query_trace(settings, query="q") as trace,
+    ):
         with tracing.start_span(settings, "retrieve"):
             await asyncio.sleep(0)  # real await boundary
             with tracing.start_span(settings, "vector_search"):
                 pass
-        trace.finalize(output="answer", tags=[], metadata={"refused": False})
+        trace.finalize(output="answer", metadata={"refused": False})
 
     names_and_parents = {
         obs.name: (obs.parent.name if obs.parent else None) for obs in client.calls
@@ -357,13 +374,8 @@ def test_sample_rate_zero_still_traces_an_errored_request(monkeypatch: pytest.Mo
 
     with (
         pytest.raises(ValueError, match="boom"),
-        tracing.start_query_trace(
-            settings,
-            request_id="44444444-4444-4444-8444-444444444444",
-            conversation_id="c1",
-            query="q",
-            persona="patient",
-        ) as trace,
+        _query_identity(request_id="44444444-4444-4444-8444-444444444444"),
+        tracing.start_query_trace(settings, query="q") as trace,
     ):
         assert trace.state.sampled is False
         raise ValueError("boom")
@@ -382,17 +394,14 @@ def test_sample_rate_zero_skips_child_span_detail_on_the_happy_path(
     monkeypatch.setattr(tracing.random, "random", lambda: 0.999)
     settings = _settings(trace_sample_rate=0.0)
 
-    with tracing.start_query_trace(
-        settings,
-        request_id="55555555-5555-4555-8555-555555555555",
-        conversation_id="c1",
-        query="q",
-        persona="patient",
-    ) as trace:
+    with (
+        _query_identity(request_id="55555555-5555-4555-8555-555555555555"),
+        tracing.start_query_trace(settings, query="q") as trace,
+    ):
         assert trace.state.sampled is False
         with tracing.start_span(settings, "retrieve"):
             pass  # a normal, uneventful retrieval -- never forces detail
-        trace.finalize(output="answer", tags=[], metadata={"refused": False})
+        trace.finalize(output="answer", metadata={"refused": False})
 
     # Root is always real; the child never was (sampled out, never forced).
     names = [obs.name for obs in client.calls]
