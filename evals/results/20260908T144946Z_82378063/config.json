@@ -1,0 +1,31 @@
+{
+  "timestamp": "20260908T144946Z",
+  "git_sha": "8237806386d8cb39930b6537692879fe115c53a4",
+  "git_dirty": false,
+  "tag": "baseline",
+  "base_url": "http://127.0.0.1:8000",
+  "concurrency": 1,
+  "slices": null,
+  "case_ids": null,
+  "chunk_strategy": "fixed_512_50",
+  "chunk_size": 512,
+  "chunk_overlap": 50,
+  "retrieval_strategy": "vector_only",
+  "k": 5,
+  "eval_retrieval_diagnostic_k": 10,
+  "embedding_model": "text-embedding-3-small",
+  "generator_model": "gpt-4o",
+  "temperature": 0.0,
+  "min_relevance_score": 0.3,
+  "prompt_version": "v1",
+  "python_version": "3.13.14",
+  "package_versions": {
+    "openai": "3.3.0",
+    "pgvector": "0.5.0",
+    "sqlalchemy": "2.0.52",
+    "tiktoken": "0.14.0"
+  },
+  "corpus_document_count": 50,
+  "corpus_chunk_count": 50,
+  "index_build_timestamp": "2026-09-01T11:01:38.110702+00:00"
+}

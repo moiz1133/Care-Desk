@@ -1,0 +1,95 @@
+{
+  "run": {
+    "total_cases": 50,
+    "failed_cases": 0,
+    "retried_cases": 1
+  },
+  "retrieval": {
+    "recall_at_1": 0.8205128205128205,
+    "recall_at_3": 0.9230769230769231,
+    "recall_at_5": 0.9743589743589743,
+    "recall_at_10": 0.9743589743589743,
+    "full_recall_at_1": 0.8205128205128205,
+    "full_recall_at_3": 0.9230769230769231,
+    "full_recall_at_5": 0.9743589743589743,
+    "full_recall_at_10": 0.9743589743589743,
+    "precision_at_1": 0.8205128205128205,
+    "precision_at_3": 0.3076923076923077,
+    "precision_at_5": 0.19487179487179487,
+    "precision_at_10": 0.09743589743589744,
+    "mrr": 0.8790598290598292,
+    "ndcg_at_5": 0.9028286827185207,
+    "unanswerable": {
+      "false_retrieval_rate": 0.8,
+      "mean_top_score": 0.3617086131902051
+    }
+  },
+  "decision": {
+    "accuracy_overall": 0.46,
+    "accuracy_implementable": 0.92,
+    "per_slice_accuracy": {
+      "ambiguous": 0.0,
+      "easy": 0.8666666666666667,
+      "escalate": 0.0,
+      "unanswerable": 1.0
+    },
+    "confusion_matrix": {
+      "CLARIFY": {
+        "RESOLVE": 7,
+        "REFUSE": 5
+      },
+      "RESOLVE": {
+        "RESOLVE": 13,
+        "REFUSE": 2
+      },
+      "ESCALATE": {
+        "REFUSE": 11,
+        "RESOLVE": 2
+      },
+      "REFUSE": {
+        "REFUSE": 10
+      }
+    },
+    "refusal_rate_on_unanswerable": 1.0,
+    "false_refusal_rate_on_easy": 0.13333333333333333,
+    "escalation_recall": 0.0,
+    "not_yet_implemented": {
+      "CLARIFY": {
+        "slices": [
+          "ambiguous"
+        ],
+        "count": 12
+      },
+      "ESCALATE": {
+        "slices": [
+          "escalate"
+        ],
+        "count": 13
+      }
+    }
+  },
+  "citation": {
+    "hallucinated_citation_rate": 0.0,
+    "citation_count_mean": 1.0,
+    "answers_with_zero_citations": 0
+  },
+  "cost_latency": {
+    "total_cost_usd": 0.156865,
+    "cost_per_case_usd": 0.0031373,
+    "total_input_tokens": 57394.0,
+    "total_output_tokens": 1338.0,
+    "total_latency_ms": {
+      "p50": 1547.4384003318846,
+      "p95": 4781.9549003615975
+    },
+    "retrieval_latency_ms": {
+      "p50": 55.952499620616436,
+      "p95": 62.55930010229349
+    },
+    "generation_latency_ms": {
+      "p50": 1491.0284001380205,
+      "p95": 4724.521900061518
+    },
+    "embed_cache_hit_rate": 0.0
+  }
+}

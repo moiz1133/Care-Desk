@@ -230,7 +230,7 @@ def _run(args: argparse.Namespace) -> int:
         RESULTS_DIR.mkdir(parents=True, exist_ok=True)
         pointer = {
             "tag": args.tag,
-            "run_dir": str(run_dir),
+            "run_dir": run_dir.as_posix(),
             "timestamp": config["timestamp"],
             "git_sha": config["git_sha"],
         }
