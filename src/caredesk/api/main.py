@@ -81,18 +81,28 @@ def create_app() -> FastAPI:
     )
     app.middleware("http")(request_context_middleware)
 
+    # None of the handlers below pass request_id via `extra=`: api.middleware's
+    # global LogRecordFactory already stamps record.request_id onto every
+    # LogRecord (see install_request_id_log_factory), so doing it again here
+    # collides with that and raises "KeyError: Attempt to overwrite
+    # 'request_id' in LogRecord" from inside logging's own makeRecord --
+    # which crashes the handler that was trying to log the *original*
+    # error, escaping both this handler and the _unexpected_error_handler
+    # fallback (which made the same mistake) and surfacing as a bare
+    # framework 500 with no JSON body at all, instead of the clean
+    # {"detail", "request_id"} response _error_response builds. Found via
+    # the Week 1 baseline eval run hitting real OpenAI rate limits.
+
     @app.exception_handler(TimeoutError)
     async def _timeout_handler(request: Request, exc: TimeoutError) -> JSONResponse:
-        logger.error("request_timeout", extra={"request_id": _request_id(request)})
+        logger.error("request_timeout")
         return _error_response(
             request, 503, "The request took too long to complete. Please retry.", retry_after=5
         )
 
     @app.exception_handler(GeneratorError)
     async def _generator_error_handler(request: Request, exc: GeneratorError) -> JSONResponse:
-        logger.error(
-            "generator_failure", extra={"request_id": _request_id(request), "error": str(exc)}
-        )
+        logger.error("generator_failure", extra={"error": str(exc)})
         return _error_response(
             request,
             503,
@@ -102,9 +112,7 @@ def create_app() -> FastAPI:
 
     @app.exception_handler(EmbedderError)
     async def _embedder_error_handler(request: Request, exc: EmbedderError) -> JSONResponse:
-        logger.error(
-            "embedder_failure", extra={"request_id": _request_id(request), "error": str(exc)}
-        )
+        logger.error("embedder_failure", extra={"error": str(exc)})
         return _error_response(
             request,
             503,
@@ -114,16 +122,14 @@ def create_app() -> FastAPI:
 
     @app.exception_handler(OperationalError)
     async def _db_unavailable_handler(request: Request, exc: OperationalError) -> JSONResponse:
-        logger.error(
-            "database_unavailable", extra={"request_id": _request_id(request), "error": str(exc)}
-        )
+        logger.error("database_unavailable", extra={"error": str(exc)})
         return _error_response(
             request, 503, "The database is temporarily unavailable. Please retry.", retry_after=5
         )
 
     @app.exception_handler(Exception)
     async def _unexpected_error_handler(request: Request, exc: Exception) -> JSONResponse:
-        logger.exception("unhandled_exception", extra={"request_id": _request_id(request)})
+        logger.exception("unhandled_exception")
         return _error_response(request, 500, "An unexpected error occurred.")
 
     @app.get("/health")
