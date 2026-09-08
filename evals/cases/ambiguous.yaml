@@ -1,0 +1,127 @@
+# Slice 2: ambiguous -- 12 cases, expected_decision CLARIFY.
+#
+# Genuinely under-specified: a correct answer exists, but only after one
+# clarifying question (plan tier, clinic site, or which specific service).
+# Not merely short queries with one clear answer -- every case here has a
+# real branch in the source document that the query doesn't disambiguate.
+# `notes` states what the clarifying question should be.
+
+- case_id: amb_001
+  slice: ambiguous
+  query: "do i need a referral to see a specialist"
+  persona: patient
+  expected_decision: CLARIFY
+  expected_source_docs: ["policy_specialist_referral"]
+  notes: "Plan-dependent: standard tier requires a primary care referral (except OB/GYN, first dermatology visit, behavioral health); premium tier requires none. Clarifying question: which plan tier -- standard or premium?"
+  difficulty: medium
+  tags: ["policy", "referral", "plan_dependent"]
+
+- case_id: amb_002
+  slice: ambiguous
+  query: "whats my copay for an mri"
+  persona: patient
+  expected_decision: CLARIFY
+  expected_source_docs: ["policy_imaging"]
+  notes: "Plan-dependent: standard tier is 20% coinsurance after deductible, premium tier is a flat $50 copay with no coinsurance. Clarifying question: which plan tier?"
+  difficulty: medium
+  tags: ["policy", "imaging", "plan_dependent", "billing"]
+
+- case_id: amb_003
+  slice: ambiguous
+  query: "hows dme cost sharing work for a patient asking about a wheelchair"
+  persona: staff
+  expected_decision: CLARIFY
+  expected_source_docs: ["policy_durable_medical_equipment"]
+  notes: "Plan-dependent: standard tier is 20% coinsurance, premium tier is 10% with no deductible applied to the DME category. Clarifying question: which plan tier is the patient on?"
+  difficulty: medium
+  tags: ["policy", "dme", "plan_dependent", "staff"]
+
+- case_id: amb_004
+  slice: ambiguous
+  query: "is therapy going to cost me anything"
+  persona: patient
+  expected_decision: CLARIFY
+  expected_source_docs: ["policy_mental_health"]
+  notes: "Plan-dependent: standard tier $30 copay per session, premium tier $20 copay. Clarifying question: which plan tier?"
+  difficulty: medium
+  tags: ["policy", "mental_health", "plan_dependent", "billing"]
+
+- case_id: amb_005
+  slice: ambiguous
+  query: "what time do yall close saturday"
+  persona: patient
+  expected_decision: CLARIFY
+  expected_source_docs: ["faq_clinic_hours"]
+  notes: "Site-dependent: general Saturday close is 1:00 PM, but the Johar Town location closes at 12:00 PM. Clarifying question: which clinic location?"
+  difficulty: easy
+  tags: ["faq", "hours", "site_dependent"]
+
+- case_id: amb_006
+  slice: ambiguous
+  query: "wheres the parkin at"
+  persona: patient
+  expected_decision: CLARIFY
+  expected_source_docs: ["faq_parking_directions"]
+  notes: "Site-dependent: Johar Town has a dedicated patient lot, Gulberg has validated garage parking requiring a ticket at the front desk -- the correct answer mechanism differs by location. Clarifying question: which clinic location? Deliberate misspelling ('parkin')."
+  difficulty: easy
+  tags: ["faq", "parking", "site_dependent", "misspelling"]
+
+- case_id: amb_007
+  slice: ambiguous
+  query: "is my scan covered"
+  persona: patient
+  expected_decision: CLARIFY
+  expected_source_docs: ["policy_imaging"]
+  notes: "Service-dependent, three-way branch: X-ray/ultrasound need no prior authorization, CT requires prior auth except in the ER, MRI requires prior auth with stricter clinical criteria in all non-emergency settings. Clarifying question: what type of scan?"
+  difficulty: hard
+  tags: ["policy", "imaging", "service_dependent"]
+
+- case_id: amb_008
+  slice: ambiguous
+  query: "does my referral still work"
+  persona: patient
+  expected_decision: CLARIFY
+  expected_source_docs: ["policy_specialist_referral"]
+  notes: "Validity is 90 days from issue date OR for a single course of treatment, whichever is shorter -- genuinely needs two pieces of missing context. Clarifying question: when was the referral issued, and is this for the same course of treatment it was issued for?"
+  difficulty: hard
+  tags: ["policy", "referral", "date_dependent"]
+
+- case_id: amb_009
+  slice: ambiguous
+  query: "is my colonoscopy covered"
+  persona: patient
+  expected_decision: CLARIFY
+  expected_source_docs: ["policy_preventive_care"]
+  notes: "Age/risk-dependent: $0 preventive coverage applies at age 45+ for average-risk patients; younger or elevated-risk patients would be coded diagnostic with standard cost-sharing (see ticket_0002 for the real-world version of this exact question, not included here since it is a staff-only ticket). Clarifying question: patient's age, and whether there is a documented elevated-risk indication?"
+  difficulty: medium
+  tags: ["policy", "preventive", "age_dependent"]
+
+- case_id: amb_010
+  slice: ambiguous
+  query: "is a video visit the same as coming in"
+  persona: patient
+  expected_decision: CLARIFY
+  expected_source_docs: ["faq_telehealth_visits"]
+  notes: "Visit-type-dependent: telehealth covers follow-ups, medication management, and some behavioral health, but not new-patient physicals or anything requiring a physical exam. Clarifying question: what type of visit are you scheduling?"
+  difficulty: easy
+  tags: ["faq", "telehealth", "service_dependent"]
+
+- case_id: amb_011
+  slice: ambiguous
+  query: "can i get a payment plan for what i owe"
+  persona: patient
+  expected_decision: CLARIFY
+  expected_source_docs: ["faq_billing_payment_plans"]
+  notes: "Balance-dependent: formal payment plans apply to balances over $200; a sub-$200 balance is a discretionary exception requiring billing supervisor approval, not an automatic yes (see ticket_0004 for the real-world pattern, not included here since it is a staff-only ticket). Clarifying question: what is the outstanding balance?"
+  difficulty: easy
+  tags: ["faq", "billing", "balance_dependent"]
+
+- case_id: amb_012
+  slice: ambiguous
+  query: "does this need to go to the nurse queue or can front desk handle it"
+  persona: staff
+  expected_decision: CLARIFY
+  expected_source_docs: ["rb_front_desk_vs_nurse_routing"]
+  notes: "Routing depends entirely on what the underlying request is about (administrative vs. clinical) -- the runbook has no answer without knowing the request itself. Clarifying question: what is the request actually about?"
+  difficulty: medium
+  tags: ["runbook", "routing", "staff"]

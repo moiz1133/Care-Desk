@@ -20,6 +20,7 @@ dependencies = [
     "streamlit>=1.37",
     "tiktoken>=0.14.0",
     "alembic>=1.19.1",
+    "pyyaml>=6.0",
 ]
 
 [dependency-groups]
@@ -31,6 +32,7 @@ dev = [
     "ruff>=0.6",
     "mypy>=1.11",
     "pre-commit>=3.7",
+    "types-pyyaml>=6.0",
 ]
 
 [build-system]
@@ -43,14 +45,14 @@ packages = ["src/caredesk"]
 [tool.ruff]
 line-length = 100
 target-version = "py311"
-src = ["src", "tests", "scripts"]
+src = ["src", "tests", "scripts", "evals"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM", "C4"]
 ignore = []
 
 [tool.ruff.lint.isort]
-known-first-party = ["caredesk"]
+known-first-party = ["caredesk", "evals"]
 
 [tool.ruff.lint.flake8-bugbear]
 # FastAPI's DI pattern requires calling Depends()/Query()/etc. in argument
@@ -79,5 +81,8 @@ warn_return_any = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["src"]
+# "." (repo root) is here, not just "src", so tests/evals/test_cases.py can
+# import evals.schema -- evals/ is a sibling of src/, not part of the
+# installed caredesk package, since it's eval content, not app code.
+pythonpath = ["src", "."]
 asyncio_mode = "auto"

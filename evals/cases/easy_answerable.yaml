@@ -1,0 +1,161 @@
+# Slice 1: easy_answerable -- 15 cases, expected_decision RESOLVE.
+#
+# Answerable from a single document with a direct factual answer. Spread
+# across all five source types; at least 3 target policy PDFs (the
+# hardest documents); at least 2 require a specific number or timeframe,
+# which exposes retrieval that finds the right document but the wrong
+# section.
+#
+# Written from the corpus documents alone, without running retrieval or
+# generation -- see evals/schema.py and the commit message for why that
+# matters.
+
+- case_id: easy_001
+  slice: easy
+  query: "what time do you open on weekdays"
+  persona: patient
+  expected_decision: RESOLVE
+  expected_source_docs: ["faq_clinic_hours"]
+  notes: "Single fact, single document -- baseline sanity check that plain FAQ lookups resolve."
+  difficulty: easy
+  tags: ["hours", "faq"]
+
+- case_id: easy_002
+  slice: easy
+  query: "what do i need to bring for my first visit"
+  persona: patient
+  expected_decision: RESOLVE
+  expected_source_docs: ["faq_new_patient_registration"]
+  notes: "Direct list lookup from a single FAQ doc; tests basic multi-item recall (ID, insurance card, medication list, emergency contact)."
+  difficulty: easy
+  tags: ["registration", "faq"]
+
+- case_id: easy_003
+  slice: easy
+  query: "how many times can i get my password rong before its locked"
+  persona: patient
+  expected_decision: RESOLVE
+  expected_source_docs: ["faq_portal_login_issues"]
+  notes: "Requires the specific number (5 attempts) and the unlock window (30 minutes), not just that lockout exists. Deliberate misspelling ('rong' for 'wrong') tests robustness to typos."
+  difficulty: medium
+  tags: ["portal", "number", "misspelling"]
+
+- case_id: easy_004
+  slice: easy
+  query: "does it cost anything to send my file to my new doctor"
+  persona: patient
+  expected_decision: RESOLVE
+  expected_source_docs: ["faq_records_request"]
+  notes: "Answer is a specific carve-out (no charge for provider-to-provider transfer, fee may apply for personal copies) -- tests whether the system reads the caveat, not just 'there might be a fee.'"
+  difficulty: easy
+  tags: ["records", "billing", "faq"]
+
+- case_id: easy_005
+  slice: easy
+  query: "can i take metformin on an empty stomach"
+  persona: patient
+  expected_decision: RESOLVE
+  expected_source_docs: ["leaflet_metformin"]
+  notes: "Purely factual administration instruction (take with food), not a dosing or clinical-judgment question -- contrast case for the escalate slice's metformin dosage cases."
+  difficulty: easy
+  tags: ["medication", "administration"]
+
+- case_id: easy_006
+  slice: easy
+  query: "is there anything i shouldnt drink a lot of with this med"
+  persona: patient
+  expected_decision: RESOLVE
+  expected_source_docs: ["leaflet_atorvastatin"]
+  notes: "Requires mapping vague 'this med' plus 'drink a lot of' to the specific grapefruit juice caution -- doesn't name atorvastatin or grapefruit directly, so string matching against the leaflet won't help."
+  difficulty: medium
+  tags: ["medication", "interaction_factual"]
+
+- case_id: easy_007
+  slice: easy
+  query: "how long can i keep the liquid version in the fridge"
+  persona: patient
+  expected_decision: RESOLVE
+  expected_source_docs: ["leaflet_amoxicillin"]
+  notes: "Specific timeframe (14 days) buried in the storage line, and requires distinguishing the liquid suspension from the tablet/capsule form -- right document, easy to answer from the wrong sentence."
+  difficulty: medium
+  tags: ["medication", "number", "storage"]
+
+- case_id: easy_008
+  slice: easy
+  query: "whats the copay for a generic med"
+  persona: patient
+  expected_decision: RESOLVE
+  expected_source_docs: ["policy_prescription_drugs"]
+  notes: "Formulary tier lookup (Tier 1 = $10) from a policy PDF -- policy documents are the hardest source type, so this is a floor case for that type."
+  difficulty: easy
+  tags: ["policy", "billing", "prescription"]
+
+- case_id: easy_009
+  slice: easy
+  query: "is my yearly checkup free"
+  persona: patient
+  expected_decision: RESOLVE
+  expected_source_docs: ["policy_preventive_care"]
+  notes: "'Yearly checkup' doesn't match the document's own vocabulary ('annual wellness visit') -- tests retrieval on a colloquial rephrasing of a policy PDF term."
+  difficulty: easy
+  tags: ["policy", "billing", "preventive"]
+
+- case_id: easy_010
+  slice: easy
+  query: "how long is a referral good for"
+  persona: patient
+  expected_decision: RESOLVE
+  expected_source_docs: ["policy_specialist_referral"]
+  notes: "Specific number (90 days) with a second clause (or a single course of treatment, whichever is shorter) that a system might drop if it only surfaces the first sentence."
+  difficulty: medium
+  tags: ["policy", "referral", "number"]
+
+- case_id: easy_011
+  slice: easy
+  query: "do i need my regular doctor to approve seeing a high risk pregnancy specialist"
+  persona: patient
+  expected_decision: RESOLVE
+  expected_source_docs: ["policy_maternity"]
+  notes: "Answer is a negative ('does not require prior primary care referral') stated as an exception buried in Section 5 -- tests whether retrieval finds the exception clause, not just the general referral policy."
+  difficulty: medium
+  tags: ["policy", "referral", "maternity"]
+
+- case_id: easy_012
+  slice: easy
+  query: "if someone walks in sick same day do we still see them or turn them away"
+  persona: staff
+  expected_decision: RESOLVE
+  expected_source_docs: ["ticket_0006"]
+  notes: "Answerable from a resolved ticket rather than a policy/FAQ doc -- tests retrieval over the ticket-log source type, and uses a staff persona since this doc is persona_visibility=both."
+  difficulty: easy
+  tags: ["ticket", "walk_in", "staff"]
+
+- case_id: easy_013
+  slice: easy
+  query: "i missed my appointment cause i was in the hospital will i still get charged"
+  persona: patient
+  expected_decision: RESOLVE
+  expected_source_docs: ["ticket_0008"]
+  notes: "Answerable from a resolved ticket precedent (hospitalization qualifies for a no-show fee waiver) rather than the FAQ itself -- second ticket-log case."
+  difficulty: easy
+  tags: ["ticket", "billing", "no_show"]
+
+- case_id: easy_014
+  slice: easy
+  query: "does front desk need approval for a first time no show waiver"
+  persona: staff
+  expected_decision: RESOLVE
+  expected_source_docs: ["rb_no_show_fee_exceptions"]
+  notes: "Staff-only runbook, staff persona -- direct Tier 1 lookup (no approval needed for a first-time no-show)."
+  difficulty: easy
+  tags: ["runbook", "no_show", "staff"]
+
+- case_id: easy_015
+  slice: easy
+  query: "what two things do we need to check before releasing a chart over the phone"
+  persona: staff
+  expected_decision: RESOLVE
+  expected_source_docs: ["rb_records_release_verification"]
+  notes: "Requires combining two separate steps from the runbook (two-factor ID verification, plus the phone-specific callback requirement) into one answer -- tests synthesis within a single document, not just single-fact lookup."
+  difficulty: medium
+  tags: ["runbook", "records", "staff"]

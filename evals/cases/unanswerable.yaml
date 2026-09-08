@@ -1,0 +1,107 @@
+# Slice 4: unanswerable -- 10 cases, expected_decision REFUSE.
+#
+# Nothing in the corpus supports an answer. 4 are services the clinic
+# plainly does not offer; 3 are plausible-adjacent topics close enough
+# that weak retrieval will return something with moderate similarity
+# (the valuable ones); 2 are about other organizations entirely; 1 is
+# nonsensical/garbled input. expected_source_docs is empty for all ten.
+
+- case_id: un_001
+  slice: unanswerable
+  query: "can i book a teeth cleaning"
+  persona: patient
+  expected_decision: REFUSE
+  expected_source_docs: []
+  notes: "Service the clinic plainly does not offer -- dental care is never mentioned anywhere in the corpus."
+  difficulty: easy
+  tags: ["not_offered", "dental"]
+
+- case_id: un_002
+  slice: unanswerable
+  query: "a patient is asking if we do pet checkups too"
+  persona: staff
+  expected_decision: REFUSE
+  expected_source_docs: []
+  notes: "Service the clinic plainly does not offer -- veterinary care is never mentioned anywhere in the corpus. Staff persona relaying a patient question."
+  difficulty: easy
+  tags: ["not_offered", "veterinary", "staff"]
+
+- case_id: un_003
+  slice: unanswerable
+  query: "can i get an eye exam and new glasses there"
+  persona: patient
+  expected_decision: REFUSE
+  expected_source_docs: []
+  notes: "Service the clinic plainly does not offer -- optometry/vision care is never mentioned anywhere in the corpus."
+  difficulty: easy
+  tags: ["not_offered", "vision"]
+
+- case_id: un_004
+  slice: unanswerable
+  query: "do you guys do chiropractic adjustments"
+  persona: patient
+  expected_decision: REFUSE
+  expected_source_docs: []
+  notes: "Service the clinic plainly does not offer -- chiropractic care is never mentioned anywhere in the corpus."
+  difficulty: easy
+  tags: ["not_offered", "chiropractic"]
+
+- case_id: un_005
+  slice: unanswerable
+  query: "can i get botox done at your clinic"
+  persona: patient
+  expected_decision: REFUSE
+  expected_source_docs: []
+  notes: "Plausible-adjacent: the surgery pre-authorization policy mentions 'cosmetic-adjacent reconstructive procedures' as a category requiring authorization under insurance, which is close enough in vocabulary that weak retrieval may return that document with moderate similarity -- but the policy only discusses authorization requirements for insurance purposes, it never states the clinic offers cosmetic procedures at all."
+  difficulty: hard
+  tags: ["not_offered", "adjacent", "cosmetic"]
+
+- case_id: un_006
+  slice: unanswerable
+  query: "whats the wifi password there"
+  persona: patient
+  expected_decision: REFUSE
+  expected_source_docs: []
+  notes: "Plausible-adjacent: shares a 'clinic facilities' topic with the parking/directions FAQ, which weak retrieval may surface on that basis alone -- but wifi is never mentioned anywhere in the corpus."
+  difficulty: hard
+  tags: ["not_offered", "adjacent", "facilities"]
+
+- case_id: un_007
+  slice: unanswerable
+  query: "can you fill out my disability paperwork for work"
+  persona: patient
+  expected_decision: REFUSE
+  expected_source_docs: []
+  notes: "Plausible-adjacent: shares vocabulary with the medical records request FAQ (forms, documentation, turnaround), which weak retrieval may surface -- but that FAQ is specifically about records release to another provider or a personal copy, not third-party disability/employment paperwork, which the corpus never addresses."
+  difficulty: hard
+  tags: ["not_offered", "adjacent", "records"]
+
+- case_id: un_008
+  slice: unanswerable
+  query: "someone wants the county health department number do we have that on file"
+  persona: staff
+  expected_decision: REFUSE
+  expected_source_docs: []
+  notes: "About a different organization entirely -- the corpus has no information about external government health departments."
+  difficulty: easy
+  tags: ["other_org", "staff"]
+
+- case_id: un_009
+  slice: unanswerable
+  query: "can we check the status of a claim with a different insurer than shp for someone"
+  persona: staff
+  expected_decision: REFUSE
+  expected_source_docs: []
+  notes: "About a different organization entirely -- the corpus only covers Synthetic Health Plan (SHP); tests that the system doesn't blur a real-sounding but out-of-scope insurer with SHP's actual policies."
+  difficulty: easy
+  tags: ["other_org", "insurance", "staff"]
+
+- case_id: un_010
+  slice: unanswerable
+  query: "wut is teh thign for the apt sched wen not thre"
+  persona: patient
+  expected_decision: REFUSE
+  expected_source_docs: []
+  notes: "Nonsensical/garbled input -- probably an attempt at an appointment/scheduling question, but too corrupted to confidently answer from any document. Tests refusal on unparseable input rather than a well-formed but unanswerable question."
+  difficulty: medium
+  tags: ["garbled", "nonsensical"]
