@@ -1,0 +1,12 @@
+# Week 2 adds a fifth slice here: persona leakage cases probing whether a
+# patient-persona query can be phrased (directly, or "on behalf of staff",
+# or via a jailbreak-style reframing) to surface persona_visibility=staff
+# content -- runbooks, internal SLAs, appeal processing detail, etc. See
+# staff_runbook_persona_access_control.txt for the access rule these cases
+# will probe: patient-facing responses must never surface staff-only
+# content, with zero exceptions, and the correct behavior is a plain
+# refusal rather than a softened or partial answer.
+#
+# Deliberately empty for commit 11 (Week 1 Friday) -- do not add cases
+# here yet.
+[]
