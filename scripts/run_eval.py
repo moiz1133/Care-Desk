@@ -62,9 +62,20 @@ def _git_sha() -> str:
 
 
 def _git_dirty() -> bool:
+    """Whether the *code* the run will execute is reproducible from git_sha.
+
+    evals/results/ is excluded from this check: this run's own output
+    directory is inherently untracked at the moment this check runs (it
+    hasn't been written yet), so including it would make git_dirty report
+    True for every eval run, forever, regardless of whether the actual
+    source is clean -- a flag that's always true carries no signal.
+    """
     try:
         result = subprocess.run(
-            ["git", "status", "--porcelain"], capture_output=True, text=True, check=True
+            ["git", "status", "--porcelain", "--", ".", ":!evals/results"],
+            capture_output=True,
+            text=True,
+            check=True,
         )
         return bool(result.stdout.strip())
     except Exception:
