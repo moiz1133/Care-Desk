@@ -222,6 +222,32 @@ class Settings(BaseSettings):
         description="Soft budget ceiling per conversation, used to trigger cost-aware routing.",
     )
 
+    # Eval harness
+    eval_concurrency: int = Field(
+        default=4,
+        description="Default number of eval cases run against /query concurrently.",
+    )
+    eval_case_timeout_seconds: float = Field(
+        default=40.0,
+        description="Per-case outer timeout in the eval harness. Deliberately above "
+        "api_request_timeout_seconds so the server's own 503-on-timeout has a chance "
+        "to come back as a real (retryable) response instead of the harness's client "
+        "cutting the connection first and masking it as a bare timeout.",
+    )
+    eval_retrieval_diagnostic_k: int = Field(
+        default=10,
+        description="k used for the harness's second, retrieval-metrics-only /query call "
+        "per case, kept separate from the real baseline k so recall@10 doesn't require "
+        "running decision/generation metrics at a k that was never the deployed config.",
+    )
+    eval_implemented_decisions: list[str] = Field(
+        default_factory=lambda: ["RESOLVE", "REFUSE"],
+        description="Which expected_decision values the current pipeline can actually "
+        "produce. Drives decision_accuracy_implementable and the eval report's "
+        "'not yet implemented' section. Week 4's decision engine adds CLARIFY and "
+        "ESCALATE here -- the harness and metrics code don't change, only this list.",
+    )
+
 
 @lru_cache
 def get_settings() -> Settings:
